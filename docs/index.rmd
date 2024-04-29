@@ -618,6 +618,9 @@ PCB_QC<-PCB_QC[,-c(1:3,6:7)]
 
 ###  Batches 1-63
 ```{r Load all batches, echo=FALSE,message=FALSE,warning=FALSE, results='hide' }
+#Create OCP and PBDE names categories 
+OCP_colnames<-c("HCB Results","b-HCH Results","Oxychlordane Results","trans-Nonachlor Results","pp-DDE-2 Results", "pp-DDT Results")
+PBDE_colnames<-c("BDE-28 Results', 'pp-DDE Results','pp-DDT-2 Results','BDE-47 Results','BDE-100 Results','BDE-99 Results','BDE-153 Results")
 
 all_weight <- import_list('H:\\nguyet53\\R\\Drexel R\\Copy of Drexel extraction_Batches_BA.xlsx', setclass = "tbl", rbind = TRUE)
 
@@ -1268,162 +1271,6 @@ pcb_batches %>%
 
 
 
-
-
-
-```{r Hlines OCP, echo=FALSE, message=FALSE, warning=FALSE}
-
-add_label_line_mean <- function(y, x, text = paste("running average")) {
-  list(geom_hline(yintercept = y),
-       annotate("text", x = mean, y = y, label = text, vjust = -0.5, hjust=-0.5)
-  )
-}
-
-add_label_line_sd <- function(y, x, text = paste("Standard Deviation")) {
-  list(geom_hline(yintercept = y),
-       annotate("text", x = mean+sd, y = y, label = text, vjust = -0.5)
-  )
-}
-
-
-
-
-#HCB
-mean_hcb<-mean(OCPPBDE_QC_Spiked$`HCB Results`)
-sd_hcb<-sd(OCPPBDE_QC_Spiked$`HCB Results`)
-
-hcb_hline <- data.frame(
-  y = c(mean_hcb, mean_hcb + c(1, -1, 2, -2) * sd_hcb),
-  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
-  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
-)
-
-
-
-#b-HCH
-mean_bHCH<-mean(OCPPBDE_QC_Spiked$`b-HCH Results`)
-sd_bHCH<-sd(OCPPBDE_QC_Spiked$`b-HCH Results`)
-
-bHCH_hline <- data.frame(
-  y = c(mean_bHCH, mean_bHCH + c(1, -1, 2, -2) * sd_bHCH),
-  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
-  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
-)
-
-#Oxychlordane
-mean_Oxychlordane<-mean(OCPPBDE_QC_Spiked$`Oxychlordane Results`)
-sd_Oxychlordane<-sd(OCPPBDE_QC_Spiked$`Oxychlordane Results`)
-
-Oxychlordane_hline <- data.frame(
-  y = c(mean_Oxychlordane, mean_Oxychlordane + c(1, -1, 2, -2) * sd_Oxychlordane),
-  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
-  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
-)
-
-
-#trans-Nonachlor
-mean_trans_Nonachlor<-mean(OCPPBDE_QC_Spiked$`trans-Nonachlor Results`)
-sd_trans_Nonachlor<-sd(OCPPBDE_QC_Spiked$`trans-Nonachlor Results`)
-
-trans_Nonachlor_hline <- data.frame(
-  y = c(mean_trans_Nonachlor, mean_trans_Nonachlor + c(1, -1, 2, -2) * sd_trans_Nonachlor),
-  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
-  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
-)
-
-#pp_DDE
-mean_pp_DDE<-mean(OCPPBDE_QC_Spiked$`pp-DDE Results`)
-sd_pp_DDE<-sd(OCPPBDE_QC_Spiked$`pp-DDE Results`)
-
-pp_DDE_hline <- data.frame(
-  y = c(mean_pp_DDE, mean_pp_DDE + c(1, -1, 2, -2) * sd_pp_DDE),
-  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
-  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
-)
-
-#pp-DDE-2 Results
-mean_pp_DDE_2<-mean(OCPPBDE_QC_Spiked$`pp-DDE-2 Results`)
-sd_pp_DDE_2<-sd(OCPPBDE_QC_Spiked$`pp-DDE-2 Results`)
-
-pp_DDE_2_hline <- data.frame(
-  y = c(mean_pp_DDE_2, mean_pp_DDE_2 + c(1, -1, 2, -2) * sd_pp_DDE_2),
-  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
-  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
-)
-
-#BDE-28 Results
-mean_BDE_28<-mean(OCPPBDE_QC_Spiked$`BDE-28 Results`)
-sd_BDE_28<-sd(OCPPBDE_QC_Spiked$`BDE-28 Results`)
-
-BDE_28_hline <- data.frame(
-  y = c(mean_BDE_28, mean_BDE_28 + c(1, -1, 2, -2) * sd_BDE_28),
-  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
-  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
-)
-
-
-#pp-DDT Results
-mean_pp_DDT<-mean(OCPPBDE_QC_Spiked$`pp-DDT Results`)
-sd_pp_DDT<-sd(OCPPBDE_QC_Spiked$`pp-DDT Results`)
-
-pp_DDT_hline <- data.frame(
-  y = c(mean_pp_DDT, mean_pp_DDT + c(1, -1, 2, -2) * sd_pp_DDT),
-  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
-  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
-)
-
-#pp-DDT-2 Results
-mean_pp_DDT_2<-mean(OCPPBDE_QC_Spiked$`pp-DDT-2 Results`)
-sd_pp_DDT_2<-sd(OCPPBDE_QC_Spiked$`pp-DDT-2 Results`)
-
-pp_DDT_2_hline <- data.frame(
-  y = c(mean_pp_DDT_2, mean_pp_DDT_2 + c(1, -1, 2, -2) * sd_pp_DDT_2),
-  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
-  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
-)
-
-#BDE-47 Results
-mean_BDE_47<-mean(OCPPBDE_QC_Spiked$`BDE-47 Results`)
-sd_BDE_47<-sd(OCPPBDE_QC_Spiked$`BDE-47 Results`)
-
-BDE_47_hline <- data.frame(
-  y = c(mean_BDE_47, mean_BDE_47 + c(1, -1, 2, -2) * sd_BDE_47),
-  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
-  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
-)
-
-#BDE-100 Results
-mean_BDE_100<-mean(OCPPBDE_QC_Spiked$`BDE-100 Results`)
-sd_BDE_100<-sd(OCPPBDE_QC_Spiked$`BDE-100 Results`)
-
-BDE_100_hline <- data.frame(
-  y = c(mean_BDE_100, mean_BDE_100 + c(1, -1, 2, -2) * sd_BDE_100),
-  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
-  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
-)
-
-#BDE-99 Results
-mean_BDE_99<-mean(OCPPBDE_QC_Spiked$`BDE-99 Results`)
-sd_BDE_99<-sd(OCPPBDE_QC_Spiked$`BDE-99 Results`)
-
-BDE_99_hline <- data.frame(
-  y = c(mean_BDE_99, mean_BDE_99 + c(1, -1, 2, -2) * sd_BDE_99),
-  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
-  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
-)
-
-#BDE-153 Results
-mean_BDE_153<-mean(OCPPBDE_QC_Spiked$`BDE-153 Results`)
-sd_BDE_153<-sd(OCPPBDE_QC_Spiked$`BDE-153 Results`)
-
-BDE_153_hline <- data.frame(
-  y = c(mean_BDE_153, mean_BDE_153 + c(1, -1, 2, -2) * sd_BDE_99),
-  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
-  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
-)
-```
-
-
 ```{r QC cleanup Data, echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
 
 #Process control plot SPIKED
@@ -1504,19 +1351,11 @@ PCB_QC_recovery_mean_batch<-data.frame(PCB_QC_recovery_mean$Batch_num)
 PCB_QC_recovery_mean<- subset(PCB_QC_recovery_mean, select = -Batch_number)
 ```
 
-```{r}
-df111<-(OCPPBDE_QC_Spiked) %>% 
-  as.data.frame() %>% 
-  select(OCP_colnames,"Batch_num") %>% 
-  melt(id.vars = 'Batch_num')
-
-```
 
 
-```{r}
-OCP_colnames<-c("HCB Results","b-HCH Results","Oxychlordane Results","trans-Nonachlor Results","pp-DDE-2 Results", "pp-DDT Results")
 
-stats<-(OCPPBDE_QC_Spiked) %>% 
+```{r Creating sd,mean table echo=FALSE,message=FALSE,warning=FALSE, results='hide' }
+stats_OCP<-(OCPPBDE_QC_Spiked) %>% 
   as.tibble() %>% 
   select(OCP_colnames) %>%
   summarise_all(funs(mean,sd)) %>% 
@@ -1532,8 +1371,15 @@ stats<-(OCPPBDE_QC_Spiked) %>%
   as.data.frame(stats)
 
 ```
+```{r}
+df111<-(OCPPBDE_QC_Spiked) %>% 
+  as.data.frame() %>% 
+  select(OCP_colnames,"Batch_num") %>% 
+  melt(id.vars = 'Batch_num')
 
-```{r HCB plot: Running average distribution, echo=FALSE,message=FALSE,warning=FALSE,  fig.height = 100, fig.width =15}
+```
+
+```{r HCB plot: Running average distribution, echo=FALSE,message=FALSE,warning=FALSE,  fig.height = 60, fig.width =15}
 OCPPBDE_QC_Spiked_min<-OCPPBDE_QC_Spiked %>% 
   as.data.frame() %>% 
   select(OCP_colnames) %>% 
@@ -1544,7 +1390,19 @@ OCPPBDE_QC_Spiked_max<-OCPPBDE_QC_Spiked %>%
   select(OCP_colnames) %>% 
   apply(2, max)
 
-
+ocp_hline <- data.frame(
+  mean = c(stats_OCP$`mean`),
+  sd1 = c(stats_OCP$`sd+1`),
+  sd_1 = c(stats_OCP$`sd-1`),
+  sd2 = c(stats_OCP$`sd+2`),
+  sd_2 = c(stats_OCP$`sd-2`),
+  linetype_mean = c("dotdash"),
+  linetype_sd1 = c("solid"),
+  linetype_sd_1 = c("solid"),
+  linetype_sd2= c("longdash"),
+  linetype_sd_2= c("longdash"),
+  variable = c(OCP_colnames)
+)
 
 max_min_spiked_ocp <- tibble(
   variable = c(OCP_colnames),
@@ -1560,66 +1418,24 @@ avg_plot1<-ggplot(max_min_spiked_ocp, aes(x = factor(Batch_num), y = value)) +
     geom_blank(aes(y = y_max))+
   geom_line(aes(color=`Batch_num`)) + 
   geom_point(aes(color=`Batch_num`)) + 
-    geom_hline(data = stats, aes(yintercept = mean), linetype = 1, color = "blue", size=0.5)+
-    geom_hline(data = stats, aes(yintercept = `sd+1`),linetype = 5, color = "black", size=0.2)+
-    geom_hline(data = stats, aes(yintercept = `sd-1`),linetype = 5, color = "black", size=0.2)+
-    geom_hline(data = stats, aes(yintercept = `sd+2`),linetype = 4, color = "black", size=0.2)+
-    geom_hline(data = stats, aes(yintercept = `sd-2`),linetype = 4, color = "black", size=0.2)+
+    geom_hline(data = ocp_hline, aes(yintercept = `mean`, linetype= `linetype_mean`), color = "blue", size=0.6)+
+    geom_hline(data = ocp_hline, aes(yintercept = `sd1`,linetype= `linetype_sd1`),color = "black", size=0.2)+
+    geom_hline(data = ocp_hline, aes(yintercept = `sd_1`,linetype= `linetype_sd_1`),color = "black", size=0.2)+
+    geom_hline(data = ocp_hline, aes(yintercept = `sd2`,linetype=`linetype_sd2`),color = "black", size=0.2)+
+    geom_hline(data = ocp_hline, aes(yintercept = `sd_2`,linetype= `linetype_sd_2`),color = "black", size=0.2)+
   guides(color="none")+
+  scale_linetype_manual(values = c(1,2,3,4,5), 
+                        labels = c("Running Average", "+/- 2 SD", "+/- 1 SD"),
+                        name = "Control Chart")+
   theme(axis.title.y = element_text(size=10, face="bold", colour = "black"),
         axis.text.y = element_text(size=10, face="bold", colour = "black"),
         strip.text = element_text(face = "bold", size=10))+
-  labs(y="Concentration", x = "Batch number",linetype = c("+/- 1 SD","+/- 1 SD","+/- 1 SD", "+/- 2 SD", "Running Average"))+
-  ggtitle("QC : HCB distribution")+
-  theme(plot.title = element_text(hjust = 0.5))+
-  scale_linetype_manual(name = "limit",
-                        values = c(1,2,3,4,5),
-                        labels = c("+/- 1 SD","+/- 1 SD","+/- 1 SD", "+/- 2 SD", "Running Average",
-                        guide = guide_legend(override.aes = list(color = c("blue", "red")))))
-
+  labs(y="Concentration", x = "Batch number")+
+  ggtitle("QC Spiked : OCP distribution")
+  
 avg_plot1  
 ```
 
-
-```{r pp-DDE plot: Running average distribution, echo=FALSE,message=FALSE,warning=FALSE}
-avg_plot5<-ggplot(
-  OCPPBDE_QC_Spiked, aes(x = factor(Batch_num), y = `pp-DDE Results`, group=`Batch_num`)) + 
-  geom_line(aes(color=`Batch_number`)) + 
-  geom_point(aes(color=`Batch_number`)) + 
-  guides(color="none")+
-  geom_hline(data = pp_DDE_hline, aes(yintercept = y , linetype = `linetype`), color = "black", size=0.5)+
-  theme(axis.title.y = element_text(size=14, face="bold", colour = "black"),
-        axis.text.y = element_text(size=10, face="bold", colour = "black"),
-        strip.text = element_text(face = "bold", size=14))+
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-  ggtitle("QC:pp-DDE distribution")+
-  labs(y="Concentration", x = "Batch number",linetype = "Control Chart" )+
-  theme(plot.title = element_text(hjust = 0.5))+
-  scale_linetype_manual(values = c(1,2,3),
-                        labels = c("+/- 1 SD", "+/- 2 SD", "Running Average"))
-
-```
-
-
-
-```{r pp-DDT Results plot: Running average distribution, echo=FALSE,message=FALSE,warning=FALSE}
-
-avg_plot8<-ggplot(
-  OCPPBDE_QC_Spiked, aes(x = factor(Batch_num), y = `pp-DDT Results`, group=`Batch_num`)) + 
-  geom_line(aes(color=`Batch_number`)) + 
-  geom_point(aes(color=`Batch_number`)) + 
-  guides(color="none")+
-  geom_hline(data = pp_DDT_hline, aes(yintercept = y , linetype = `linetype`), color = "black", size=0.5)+
-  theme(axis.title.y = element_text(size=14, face="bold", colour = "black"),
-        axis.text.y = element_text(size=10, face="bold", colour = "black"),
-        strip.text = element_text(face = "bold", size=14))+
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-  ggtitle("QC: pp-DDT distribution")+
-  labs(y="Concentration", x = "Batch number",linetype = "Control Chart" )+
-  theme(plot.title = element_text(hjust = 0.5))+
-  scale_linetype_manual(values = c(1,2,3),
-                        labels = c("+/- 1 SD", "+/- 2 SD", "Running Average"))
-```
 
 
 
