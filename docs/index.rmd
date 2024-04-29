@@ -1729,172 +1729,92 @@ OCPPBDE_QC_unspike_mean %>%
     ggtitle("Untargetted Pool average concentration - OCP/PBDE") + 
     theme(plot.title = element_text(hjust = 0.5))
 ```
+```{r Creating sd,mean table echo=FALSE,message=FALSE,warning=FALSE, results='hide' }
+stats_OCP_Unspike<-(OCPPBDE_QC_Unspike) %>% 
+  as.tibble() %>% 
+  select(OCP_colnames) %>%
+  summarise_all(funs(mean,sd)) %>% 
+   pivot_longer(cols = everything(), 
+               names_to = c('variable', '.value'), 
+               names_sep = '_') %>%
+  mutate(`sd+1`=(`mean` + `sd`),
+         `sd-1`= (`mean` - `sd`),
+         `sd+2`= (`mean` + 2*(`sd`)),
+         `sd-2`= (`mean` - 2*(`sd`))
+          
+         ) %>% 
+  as.data.frame(stats_OCP_Unspike)
 
+```
 
+```{r}
+stats_OCP_Unspike_longer<-(OCPPBDE_QC_Unspike) %>% 
+  as.data.frame() %>% 
+  select(OCP_colnames,"Batch_num") %>% 
+  melt(id.vars = 'Batch_num')
 
-```{r Hlines OCP Unspiked, echo=FALSE, message=FALSE, warning=FALSE}
+```
 
-OCPPBDE_QC_Unspike %>% 
+```{r HCB plot: Running average distribution, echo=FALSE,message=FALSE,warning=FALSE,  fig.height = 60, fig.width =15}
+OCPPBDE_QC_Unspike_min<-OCPPBDE_QC_Unspike %>% 
+  as.data.frame() %>% 
   select(OCP_colnames) %>% 
-  summarise_each(funs(mean, sd))
+  apply(2, min)
 
+OCPPBDE_QC_Unspike_max<-OCPPBDE_QC_Unspike %>% 
+  as.data.frame() %>% 
+  select(OCP_colnames) %>% 
+  apply(2, max)
 
-#HCB
-mean_hcb<-mean(OCPPBDE_QC_Unspike$`HCB Results`)
-sd_hcb<-sd(OCPPBDE_QC_Unspike$`HCB Results`)
-
-hcb_hline <- data.frame(
-  y = c(mean_hcb, mean_hcb + c(1, -1, 2, -2) * sd_hcb),
-  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
-  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+ocp_unspike_hline <- data.frame(
+  mean = c(stats_OCP_Unspike$`mean`),
+  sd1 = c(stats_OCP_Unspike$`sd+1`),
+  sd_1 = c(stats_OCP_Unspike$`sd-1`),
+  sd2 = c(stats_OCP_Unspike$`sd+2`),
+  sd_2 = c(stats_OCP_Unspike$`sd-2`),
+  linetype_mean = c("dotdash"),
+  linetype_sd1 = c("solid"),
+  linetype_sd_1 = c("solid"),
+  linetype_sd2= c("longdash"),
+  linetype_sd_2= c("longdash"),
+  variable = c(OCP_colnames)
 )
 
-
-#Oxychlordane
-mean_Oxychlordane<-mean(OCPPBDE_QC_Unspike$`Oxychlordane Results`)
-sd_Oxychlordane<-sd(OCPPBDE_QC_Unspike$`Oxychlordane Results`)
-
-Oxychlordane_hline <- data.frame(
-  y = c(mean_Oxychlordane, mean_Oxychlordane + c(1, -1, 2, -2) * sd_Oxychlordane),
-  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
-  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+max_min_unspike_ocp <- tibble(
+  variable = c(OCP_colnames),
+  y_min = c(OCPPBDE_QC_Unspike_min),
+  y_max = c(OCPPBDE_QC_Unspike_max)
 )
 
+max_min_unspike_ocp <- full_join(stats_OCP_Unspike_longer, max_min_unspike_ocp, by = "variable")
 
-#trans-Nonachlor
-mean_trans_Nonachlor<-mean(OCPPBDE_QC_Unspike$`trans-Nonachlor Results`)
-sd_trans_Nonachlor<-sd(OCPPBDE_QC_Unspike$`trans-Nonachlor Results`)
-
-trans_Nonachlor_hline <- data.frame(
-  y = c(mean_trans_Nonachlor, mean_trans_Nonachlor + c(1, -1, 2, -2) * sd_trans_Nonachlor),
-  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
-  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
-)
-
-#pp-DDE-2 Results
-mean_pp_DDE_2<-mean(OCPPBDE_QC_Unspike$`pp-DDE-2 Results`)
-sd_pp_DDE_2<-sd(OCPPBDE_QC_Unspike$`pp-DDE-2 Results`)
-
-pp_DDE_2_hline <- data.frame(
-  y = c(mean_pp_DDE_2, mean_pp_DDE_2 + c(1, -1, 2, -2) * sd_pp_DDE_2),
-  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
-  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
-)
-
-
-
-#pp-DDT Results
-mean_pp_DDT<-mean(OCPPBDE_QC_Unspike$`pp-DDT Results`)
-sd_pp_DDT<-sd(OCPPBDE_QC_Unspike$`pp-DDT Results`)
-
-pp_DDT_hline <- data.frame(
-  y = c(mean_pp_DDT, mean_pp_DDT + c(1, -1, 2, -2) * sd_pp_DDT),
-  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
-  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
-)
-
-```
-
-
-
-```{r UNSPIKED OCP: HCB plot - Running average distribution, echo=FALSE,message=FALSE,warning=FALSE}
-
-avg_plot11<-ggplot(OCPPBDE_QC_Unspike, aes(x = factor(Batch_num), y = `HCB Results`, group=`Batch_num`)) + 
-  geom_line(aes(color=`Batch_number`)) + 
-  geom_point(aes(color=`Batch_number`)) + 
+shewhart_ocp_unspike<-ggplot(max_min_unspike_ocp, aes(x = factor(Batch_num), y = value)) + 
+  facet_wrap(~variable,ncol=1, scales="free_y")+
+    geom_blank(aes(y = y_min)) +
+    geom_blank(aes(y = y_max))+
+  geom_line(aes(color=`Batch_num`)) + 
+  geom_point(aes(color=`Batch_num`)) + 
+    geom_hline(data = ocp_unspike_hline, aes(yintercept = `mean`, linetype= `linetype_mean`), color = "blue", size=0.6)+
+    geom_hline(data = ocp_unspike_hline, aes(yintercept = `sd1`,linetype= `linetype_sd1`),color = "black", size=0.2)+
+    geom_hline(data = ocp_unspike_hline, aes(yintercept = `sd_1`,linetype= `linetype_sd_1`),color = "black", size=0.2)+
+    geom_hline(data = ocp_unspike_hline, aes(yintercept = `sd2`,linetype=`linetype_sd2`),color = "black", size=0.2)+
+    geom_hline(data = ocp_unspike_hline, aes(yintercept = `sd_2`,linetype= `linetype_sd_2`),color = "black", size=0.2)+
   guides(color="none")+
-  geom_hline(data = hcb_hline, aes(yintercept = y , linetype = `linetype`), color = "black", size=0.5)+
-   theme(axis.title.y = element_text(size=10, face="bold", colour = "black"),
+  scale_linetype_manual(values = c(1,2,3,4,5), 
+                        labels = c("Running Average", "+/- 2 SD", "+/- 1 SD"),
+                        name = "Control Chart")+
+  theme(axis.title.y = element_text(size=10, face="bold", colour = "black"),
         axis.text.y = element_text(size=10, face="bold", colour = "black"),
         strip.text = element_text(face = "bold", size=10))+
-  labs(y="Concentration", x = "Batch number",linetype = "Control Chart" )+
-  ggtitle("Unspiked QC : HCB distribution")+
-  theme(plot.title = element_text(hjust = 0.5))+
-  scale_linetype_manual(values = c(1,2,3),
-                        labels = c("+/- 1 SD", "+/- 2 SD", "Running Average"))
+  labs(y="Concentration", x = "Batch number")+
+  ggtitle("QC Unspike: OCP distribution")
   
 ```
 
-```{r UNSPIKED OCP: Oxychlordane plot - Running average distribution, echo=FALSE,message=FALSE,warning=FALSE}
-
-avg_plot22<-ggplot(OCPPBDE_QC_Unspike, aes(x = factor(Batch_num), y = `Oxychlordane Results`, group=`Batch_num`)) + 
-  geom_line(aes(color=`Batch_number`)) + 
-  geom_point(aes(color=`Batch_number`)) + 
-  guides(color="none")+
-  geom_hline(data = Oxychlordane_hline, aes(yintercept = y , linetype = `linetype`), color = "black", size=0.5)+
-   theme(axis.title.y = element_text(size=10, face="bold", colour = "black"),
-        axis.text.y = element_text(size=10, face="bold", colour = "black"),
-        strip.text = element_text(face = "bold", size=10))+
-  labs(y="Concentration", x = "Batch number",linetype = "Control Chart" )+
-  ggtitle("Unspiked QC : Oxychlordane distribution")+
-  theme(plot.title = element_text(hjust = 0.5))+
-  scale_linetype_manual(values = c(1,2,3),
-                        labels = c("+/- 1 SD", "+/- 2 SD", "Running Average"))
-  
-```
-
-```{r UNSPIKED OCP: trans-Nonachlor plot - Running average distribution, echo=FALSE,message=FALSE,warning=FALSE}
-
-avg_plot33<-ggplot(OCPPBDE_QC_Unspike, aes(x = factor(Batch_num), y = `trans-Nonachlor Results`, group=`Batch_num`)) + 
-  geom_line(aes(color=`Batch_number`)) + 
-  geom_point(aes(color=`Batch_number`)) + 
-  guides(color="none")+
-  geom_hline(data = trans_Nonachlor_hline, aes(yintercept = y , linetype = `linetype`), color = "black", size=0.5)+
-   theme(axis.title.y = element_text(size=10, face="bold", colour = "black"),
-        axis.text.y = element_text(size=10, face="bold", colour = "black"),
-        strip.text = element_text(face = "bold", size=10))+
-  labs(y="Concentration", x = "Batch number",linetype = "Control Chart" )+
-  ggtitle("Unspiked QC : trans-Nonachlor distribution")+
-  theme(plot.title = element_text(hjust = 0.5))+
-  scale_linetype_manual(values = c(1,2,3),
-                        labels = c("+/- 1 SD", "+/- 2 SD", "Running Average"))
-  
-```
-
-```{r UNSPIKED OCP: pp-DDE-2 Results plot - Running average distribution, echo=FALSE,message=FALSE,warning=FALSE}
-
-avg_plot44<-ggplot(OCPPBDE_QC_Unspike, aes(x = factor(Batch_num), y = `pp-DDE-2 Results`, group=`Batch_num`)) + 
-  geom_line(aes(color=`Batch_number`)) + 
-  geom_point(aes(color=`Batch_number`)) + 
-  guides(color="none")+
-  geom_hline(data = pp_DDE_2_hline, aes(yintercept = y , linetype = `linetype`), color = "black", size=0.5)+
-   theme(axis.title.y = element_text(size=10, face="bold", colour = "black"),
-        axis.text.y = element_text(size=10, face="bold", colour = "black"),
-        strip.text = element_text(face = "bold", size=10))+
-  labs(y="Concentration", x = "Batch number",linetype = "Control Chart" )+
-  ggtitle("Unspiked QC : pp-DDE-2 distribution")+
-  theme(plot.title = element_text(hjust = 0.5))+
-  scale_linetype_manual(values = c(1,2,3),
-                        labels = c("+/- 1 SD", "+/- 2 SD", "Running Average"))
-  
-```
-
-
-```{r UNSPIKED OCP: pp-DDT plot - Running average distribution, echo=FALSE,message=FALSE,warning=FALSE}
-
-avg_plot55<-ggplot(OCPPBDE_QC_Unspike, aes(x = factor(Batch_num), y = `pp-DDT Results`, group=`Batch_num`)) + 
-  geom_line(aes(color=`Batch_number`)) + 
-  geom_point(aes(color=`Batch_number`)) + 
-  guides(color="none")+
-  geom_hline(data = pp_DDT_hline, aes(yintercept = y , linetype = `linetype`), color = "black", size=0.5)+
-   theme(axis.title.y = element_text(size=10, face="bold", colour = "black"),
-        axis.text.y = element_text(size=10, face="bold", colour = "black"),
-        strip.text = element_text(face = "bold", size=10))+
-  labs(y="Concentration", x = "Batch number",linetype = "Control Chart" )+
-  ggtitle("Unspiked QC : pp-DDT distribution")+
-  theme(plot.title = element_text(hjust = 0.5))+
-  scale_linetype_manual(values = c(1,2,3),
-                        labels = c("+/- 1 SD", "+/- 2 SD", "Running Average"))
-  
-```
 
 ### Shewhart Chart: OCP (Unspiked)
-```{r Display Unspiked OCP Shewhart Chart, echo=FALSE,message=FALSE,warning=FALSE}
-avg_plot11 
-avg_plot22
-avg_plot33
-avg_plot44
-avg_plot55
+```{r Display Unspiked OCP Shewhart Chart, echo=FALSE,message=FALSE,warning=FALSE,  fig.height = 60, fig.width =15}
+shewhart_ocp_unspike 
 ```
 
 
