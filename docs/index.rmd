@@ -1,0 +1,2748 @@
+
+---
+title: "Drexel Data Batches 1-13"
+author: "Viola Nguyen"
+date: "4/17/2024"
+output: 
+  html_document:
+    theme: cerulean
+    css: styles.css
+    toc: yes
+    number_sections: yes
+    toc_float: yes
+    collapsed: no
+    smooth_scroll: yes
+---
+
+
+
+
+```{r setup, echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Loading Libraries
+```{r Loading packages, echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
+library(anytime)
+
+library(cowplot)
+library(corrplot)
+library(cli)
+
+library(dplyr)
+library(data.table)
+
+
+library(httr)
+library(janitor)
+
+library(ggplot2)
+library(ggvenn)
+library(gghighlight)
+library(gridExtra)
+library(gt)
+
+library(kableExtra)
+library(lubridate)
+
+library(magrittr)
+
+library(openintro)
+library(openxlsx)
+library(pdftools)
+
+library(RColorBrewer)
+library(rio)
+library(readr)
+library(readxl)
+
+library(stringr)
+
+
+library(tibble)
+library(tidyverse)
+library(tidyr)
+
+
+library(VennDiagram)
+
+library(reshape2)
+library(forcats)
+library(dplyr)
+```
+
+<style>
+.table-hover > tbody > tr:hover { 
+  background-color: #fddbd4;
+}
+</style>
+
+```{Title settings, css, echo=FALSE}
+h1.title {
+  font-size: 38px;
+  color: Black;
+  text-align: center;
+}
+h4.author { /* Header 4 - and the author and data headers use this too  */
+    font-size: 18px;
+  font-family: "Barnaby", Times, serif;
+  color: Black;
+  text-align: center;
+}
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  font-family: "Times New Roman", Times, serif;
+  color: Black;
+  text-align: center;
+}
+  
+<style>
+.table-hover > tbody > tr:hover { 
+  background-color: #fddbd4;
+}
+</style> 
+  
+```
+# Data Tables
+### Clean Up Drexel Raw Data
+```{r Julia H Reference sheets, echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
+#Loading Reference sheets
+
+#Julia file:  "Drexel x50-metals Batch 1 & 2 Run list" 
+
+#Drexel 1and 2 JH -batch 1 -> No weights
+NOTES_Julia_1<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder Projects\\Tooth powder\\Drexel\\Drexel 1and 2 JH\\Drexel x50-metals Batch 1 & 2 Run list.xlsx')
+NOTES_Julia_1<-NOTES_Julia_1 %>% 
+  select('SAMPLE_ID','Notes','Drill Date')
+colnames(NOTES_Julia_1)[colnames(NOTES_Julia_1) == "SAMPLE_ID"] ="Lab sample ID"
+colnames(NOTES_Julia_1)[colnames(NOTES_Julia_1) == "Drill Date"] ="Start Drill date"
+NOTES_Julia_1 <- cbind(NOTES_Julia_1, "End Drill date"=NA)
+NOTES_Julia_1 <- cbind(NOTES_Julia_1, "Date of Weighing"=NA)
+NOTES_Julia_1 <- cbind(NOTES_Julia_1, "Fraction"=NA)
+NOTES_Julia_1 <- cbind(NOTES_Julia_1, "Tooth Powder"=NA)
+
+NOTES_Julia_1$`Start Drill date`<-as.character(NOTES_Julia_1$`Start Drill date`)
+
+
+#Drexel 1and 2 JH -batch 2 -> No weights
+NOTES_Julia_2<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder projects\\Tooth powder\\Drexel\\Drexel 1and 2 JH\\Drexel x50-metals Batch 1 & 2 Run list.xlsx',sheet = 'Batch 02')
+NOTES_Julia_2<-NOTES_Julia_2 %>% 
+  select('Sample ID','Notes','Date')
+colnames(NOTES_Julia_2)[colnames(NOTES_Julia_2) == "Sample ID"] ="Lab sample ID"
+colnames(NOTES_Julia_2)[colnames(NOTES_Julia_2) == "Date"] ="Start Drill date"
+NOTES_Julia_2 <- cbind(NOTES_Julia_2, "End Drill date"=NA)
+NOTES_Julia_2 <- cbind(NOTES_Julia_2, "Date of Weighing"=NA)
+NOTES_Julia_2 <- cbind(NOTES_Julia_2, "Fraction"=NA)
+NOTES_Julia_2 <- cbind(NOTES_Julia_2, "Tooth Powder"=NA)
+NOTES_Julia_2$`Start Drill date`<-as.character(NOTES_Julia_2$`Start Drill date`)
+
+
+NOTES_Julia_3<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder projects\\Tooth powder\\Drexel\\Drexel 1and 2 JH\\Drexel x50-metals Batch 1 & 2 Run list.xlsx',sheet = 'Run List')
+colnames(NOTES_Julia_3)[colnames(NOTES_Julia_3) == "SAMPLE_ID"] ="Lab sample ID"
+NOTES_Julia_3<-NOTES_Julia_3 %>% 
+  select('Lab sample ID','Notes','Drill Date')
+colnames(NOTES_Julia_3)[colnames(NOTES_Julia_3) == "Sample ID"] ="Lab sample ID"
+colnames(NOTES_Julia_3)[colnames(NOTES_Julia_3) == "Drill Date"] ="Start Drill date"
+NOTES_Julia_3 <- cbind(NOTES_Julia_3, "End Drill date"=NA)
+NOTES_Julia_3 <- cbind(NOTES_Julia_3, "Date of Weighing"=NA)
+NOTES_Julia_3 <- cbind(NOTES_Julia_3, "Fraction"=NA)
+NOTES_Julia_3 <- cbind(NOTES_Julia_3, "Tooth Powder"=NA)
+NOTES_Julia_3$`Start Drill date`<-as.character(NOTES_Julia_3$`Start Drill date`)
+
+
+#Julia File: "ECHO Drexel Batch 2_newx50  Run list CM group"
+
+NOTES_newx50<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder projects\\Tooth powder\\Drexel\\Drexel 1and 2 JH\\ECHO Drexel Batch 2_newx50  Run list CM group.xlsx',sheet = 'Sheet1')
+NOTES_newx50<-NOTES_newx50 %>% 
+  select('Sample ID','Notes','Date')
+colnames(NOTES_newx50)[colnames(NOTES_newx50) == "Sample ID"] ="Lab sample ID"
+colnames(NOTES_newx50)[colnames(NOTES_newx50) == "Date"] ="Start Drill date"
+NOTES_newx50 <- cbind(NOTES_newx50, "End Drill date"=NA)
+NOTES_newx50 <- cbind(NOTES_newx50, "Date of Weighing"=NA)
+NOTES_newx50 <- cbind(NOTES_newx50, "Fraction"=NA)
+NOTES_newx50 <- cbind(NOTES_newx50, "Tooth Powder"=NA)
+NOTES_newx50$`Start Drill date`<-as.character(NOTES_newx50$`Start Drill date`)
+
+
+NOTES_newx50_2<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder projects\\Tooth powder\\Drexel\\Drexel 1and 2 JH\\ECHO Drexel Batch 2_newx50  Run list CM group.xlsx',sheet = 'SAMPLE ID LIST WEEK 2')
+NOTES_newx50_2<-NOTES_newx50_2 %>% 
+  select('Sample ID','Notes','Start Date')
+colnames(NOTES_newx50_2)[colnames(NOTES_newx50_2) == "Sample ID"] ="Lab sample ID"
+colnames(NOTES_newx50_2)[colnames(NOTES_newx50_2) == "Start Date"] ="Start Drill date"
+colnames(NOTES_newx50_2)[colnames(NOTES_newx50_2) == "End Date"] ="End Drill date"
+NOTES_newx50_2 <- cbind(NOTES_newx50_2, "End Drill date"=NA)
+NOTES_newx50_2 <- cbind(NOTES_newx50_2, "Date of Weighing"=NA)
+NOTES_newx50_2 <- cbind(NOTES_newx50_2, "Fraction"=NA)
+NOTES_newx50_2 <- cbind(NOTES_newx50_2, "Tooth Powder"=NA)
+NOTES_newx50_2$`Start Drill date`<-as.character(NOTES_newx50_2$`Start Drill date`)
+
+
+NOTES_newx50_3<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder projects\\Tooth powder\\Drexel\\Drexel 1and 2 JH\\ECHO Drexel Batch 2_newx50  Run list CM group.xlsx',sheet = 'SAMPLE ID LIST WEEK 3')
+NOTES_newx50_3<-NOTES_newx50_3 %>% 
+  select('Sample ID','Notes','Date')
+colnames(NOTES_newx50_3)[colnames(NOTES_newx50_3) == "Sample ID"] ="Lab sample ID"
+colnames(NOTES_newx50_3)[colnames(NOTES_newx50_3) == "Date"] ="Start Drill date"
+NOTES_newx50_3 <- cbind(NOTES_newx50_3, "End Drill date"=NA)
+NOTES_newx50_3 <- cbind(NOTES_newx50_3, "Date of Weighing"=NA)
+NOTES_newx50_3 <- cbind(NOTES_newx50_3, "Fraction"=NA)
+NOTES_newx50_3 <- cbind(NOTES_newx50_3, "Tooth Powder"=NA)
+NOTES_newx50_3$`Start Drill date`<-as.character(NOTES_newx50_3$`Start Drill date`)
+
+
+NOTES_newx50_4<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder projects\\Tooth powder\\Drexel\\Drexel 1and 2 JH\\ECHO Drexel Batch 2_newx50  Run list CM group.xlsx',sheet = 'SAMPLE ID LIST W4')
+NOTES_newx50_4<-NOTES_newx50_4 %>% 
+  select('Sample ID','Notes','Date')
+colnames(NOTES_newx50_4)[colnames(NOTES_newx50_4) == "Sample ID"] ="Lab sample ID"
+colnames(NOTES_newx50_4)[colnames(NOTES_newx50_4) == "Date"] ="Start Drill date"
+NOTES_newx50_4 <- cbind(NOTES_newx50_4, "End Drill date"=NA)
+NOTES_newx50_4 <- cbind(NOTES_newx50_4, "Date of Weighing"=NA)
+NOTES_newx50_4 <- cbind(NOTES_newx50_4, "Fraction"=NA)
+NOTES_newx50_4 <- cbind(NOTES_newx50_4, "Tooth Powder"=NA)
+NOTES_newx50_4$`Start Drill date`<-as.character(NOTES_newx50_4$`Start Drill date`)
+
+
+NOTES_newx50_5<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder projects\\Tooth powder\\Drexel\\Drexel 1and 2 JH\\ECHO Drexel Batch 2_newx50  Run list CM group.xlsx',sheet = 'Sample List W05')
+NOTES_newx50_5<-NOTES_newx50_5 %>% 
+  select('Sample ID','Notes','Date')
+colnames(NOTES_newx50_5)[colnames(NOTES_newx50_5) == "Sample ID"] ="Lab sample ID"
+colnames(NOTES_newx50_5)[colnames(NOTES_newx50_5) == "Date"] ="Start Drill date"
+NOTES_newx50_5 <- cbind(NOTES_newx50_5, "End Drill date"=NA)
+NOTES_newx50_5 <- cbind(NOTES_newx50_5, "Date of Weighing"=NA)
+NOTES_newx50_5 <- cbind(NOTES_newx50_5, "Fraction"=NA)
+NOTES_newx50_5 <- cbind(NOTES_newx50_5, "Tooth Powder"=NA)
+NOTES_newx50_5$`Start Drill date`<-as.character(NOTES_newx50_5$`Start Drill date`)
+
+
+NOTES_newx50_6<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder projects\\Tooth powder\\Drexel\\Drexel 1and 2 JH\\ECHO Drexel Batch 2_newx50  Run list CM group.xlsx',sheet = 'Sampel List W06')
+NOTES_newx50_6<-NOTES_newx50_6 %>% 
+  select('Sample ID','Notes','Date')
+colnames(NOTES_newx50_6)[colnames(NOTES_newx50_6) == "Sample ID"] ="Lab sample ID"
+colnames(NOTES_newx50_6)[colnames(NOTES_newx50_6) == "Date"] ="Start Drill date"
+NOTES_newx50_6 <- cbind(NOTES_newx50_6, "End Drill date"=NA)
+NOTES_newx50_6 <- cbind(NOTES_newx50_6, "Date of Weighing"=NA)
+NOTES_newx50_6 <- cbind(NOTES_newx50_6, "Fraction"=NA)
+NOTES_newx50_6 <- cbind(NOTES_newx50_6, "Tooth Powder"=NA)
+NOTES_newx50_6$`Start Drill date`<-as.character(NOTES_newx50_6$`Start Drill date`)
+
+
+NOTES_newx50_7<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder projects\\Tooth powder\\Drexel\\Drexel 1and 2 JH\\ECHO Drexel Batch 2_newx50  Run list CM group.xlsx',sheet = 'Sample LisT W07')
+NOTES_newx50_7<-NOTES_newx50_7 %>% 
+  select('Sample ID','Notes','Date')
+colnames(NOTES_newx50_7)[colnames(NOTES_newx50_7) == "Sample ID"] ="Lab sample ID"
+colnames(NOTES_newx50_7)[colnames(NOTES_newx50_7) == "Date"] ="Start Drill date"
+NOTES_newx50_7 <- cbind(NOTES_newx50_7, "End Drill date"=NA)
+NOTES_newx50_7 <- cbind(NOTES_newx50_7, "Date of Weighing"=NA)
+NOTES_newx50_7 <- cbind(NOTES_newx50_7, "Fraction"=NA)
+NOTES_newx50_7 <- cbind(NOTES_newx50_7, "Tooth Powder"=NA)
+NOTES_newx50_7$`Start Drill date`<-as.character(NOTES_newx50_7$`Start Drill date`)
+
+
+NOTES_Julia_4<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder projects\\Tooth powder\\Drexel\\Drexel 1and 2 JH\\ECHO Drexel 1 &2 TP Weights.xlsx')
+NOTES_Julia_4<-NOTES_Julia_4 %>% 
+  select('Lab sample ID','Tooth Powder', 'Fraction')
+NOTES_Julia_4 <- cbind(NOTES_Julia_4, "Start Drill date"=NA)
+NOTES_Julia_4 <- cbind(NOTES_Julia_4, "End Drill date"=NA)
+NOTES_Julia_4 <- cbind(NOTES_Julia_4, "Date of Weighing"=NA)
+NOTES_Julia_4 <- cbind(NOTES_Julia_4, "Notes"=NA)
+
+
+
+Julia_notes<- rbind(NOTES_Julia_1,NOTES_Julia_2, NOTES_Julia_3,NOTES_Julia_4,NOTES_newx50,NOTES_newx50_2,NOTES_newx50_3,NOTES_newx50_4,NOTES_newx50_5,NOTES_newx50_6,NOTES_newx50_7)
+Julia_notes<- Julia_notes[!duplicated(Julia_notes$`Lab sample ID`), ]
+Julia_notes$`Tooth Powder`<-as.numeric(Julia_notes$`Tooth Powder`)
+write.csv(Julia_notes, "H:\\nguyet53\\R\\Drexel R\\Drexel_notes_julia.csv", row.names=TRUE)
+```
+
+
+```{r Drexel Batch 3 PR, echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
+
+#Drexel Batch 3
+
+NOTES_1<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder projects\\Tooth powder\\Drexel\\Drexel Batch 3\\Final_Drexel-Batch-3_Postdrilling_ 10_12-2022.xlsx',sheet = 'Sub-batch1 Freeze dry1')
+colnames(NOTES_1)[1]="Lab sample ID"
+NOTES_1<-NOTES_1 %>% 
+  select('Lab sample ID','Notes', 'Tooth Powder Weight','Start Date','End Date', 'Date of Weighing','Region')
+colnames(NOTES_1)[colnames(NOTES_1) == "Sample ID"] ="Lab sample ID"
+colnames(NOTES_1)[colnames(NOTES_1) == "Start Date"] ="Start Drill date"
+colnames(NOTES_1)[colnames(NOTES_1) == "End Date"] ="End Drill date"
+colnames(NOTES_1)[colnames(NOTES_1) == "Tooth Powder Weight"] ="Tooth Powder"
+colnames(NOTES_1)[colnames(NOTES_1) == "Region"] ="Fraction"
+NOTES_1$`Start Drill date`<-as.character(NOTES_1$`Start Drill date`)
+NOTES_1$`End Drill date`<-as.character(NOTES_1$`End Drill date`)
+NOTES_1$`Date of Weighing`<-as.character(NOTES_1$`Date of Weighing`)
+
+NOTES_2<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder projects\\Tooth powder\\Drexel\\Drexel Batch 3\\Final_Drexel-Batch-3_Postdrilling_ 10_12-2022.xlsx',sheet = 'Subbatch 2 Freeze-dry2')
+colnames(NOTES_2)[1]="Lab sample ID"
+NOTES_2<-NOTES_2 %>% 
+  select('Lab sample ID','Notes', 'Tooth Powder Weight','Start Date','End Date','Date of Weighing','Region')
+colnames(NOTES_2)[colnames(NOTES_2) == "Sample ID"] ="Lab sample ID"
+colnames(NOTES_2)[colnames(NOTES_2) == "Start Date"] ="Start Drill date"
+colnames(NOTES_2)[colnames(NOTES_2) == "End Date"] ="End Drill date"
+colnames(NOTES_2)[colnames(NOTES_2) == "Tooth Powder Weight"] ="Tooth Powder"
+colnames(NOTES_2)[colnames(NOTES_2) == "Region"] ="Fraction"
+NOTES_2$`Start Drill date`<-as.character(NOTES_2$`Start Drill date`)
+NOTES_2$`End Drill date`<-as.character(NOTES_2$`End Drill date`)
+NOTES_2$`Date of Weighing`<-as.character(NOTES_2$`Date of Weighing`)
+
+NOTES_3<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder projects\\Tooth powder\\Drexel\\Drexel Batch 3\\Final_Drexel-Batch-3_Postdrilling_ 10_12-2022.xlsx',sheet = 'Subbatch 3 Freeze-dry3')
+colnames(NOTES_3)[1]="Lab sample ID"
+NOTES_3<-NOTES_3 %>% 
+  select('Lab sample ID','Notes', 'Tooth Powder','Start Date','End Date', 'Date of Weighing','Region')
+colnames(NOTES_3)[colnames(NOTES_3) == "Sample ID"] ="Lab sample ID"
+colnames(NOTES_3)[colnames(NOTES_3) == "Start Date"] ="Start Drill date"
+colnames(NOTES_3)[colnames(NOTES_3) == "End Date"] ="End Drill date"
+colnames(NOTES_3)[colnames(NOTES_3) == "Region"] ="Fraction"
+NOTES_3$`Start Drill date`<-as.character(NOTES_3$`Start Drill date`)
+NOTES_3$`End Drill date`<-as.character(NOTES_3$`End Drill date`)
+NOTES_3$`Date of Weighing`<-as.character(NOTES_3$`Date of Weighing`)
+
+NOTES_4<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder projects\\Tooth powder\\Drexel\\Drexel Batch 3\\Final_Drexel-Batch-3_Postdrilling_ 10_12-2022.xlsx',sheet = 'Subbatch 4 Freeze-dry4')
+colnames(NOTES_4)[1]="Lab sample ID"
+NOTES_4<-NOTES_4 %>%
+  select('Lab sample ID','Notes', 'Tooth Powder','Start Date','End Date', 'Date of Weighing','Region')
+  colnames(NOTES_4)[colnames(NOTES_4) == "Sample ID"] ="Lab sample ID"
+  colnames(NOTES_4)[colnames(NOTES_4) == "Start Date"] ="Start Drill date"
+  colnames(NOTES_4)[colnames(NOTES_4) == "End Date"] ="End Drill date"
+  colnames(NOTES_4)[colnames(NOTES_4) == "Region"] ="Fraction"
+NOTES_4$`Start Drill date`<-as.character(NOTES_4$`Start Drill date`)
+NOTES_4$`End Drill date`<-as.character(NOTES_4$`End Drill date`)
+NOTES_4$`Date of Weighing`<-as.character(NOTES_4$`Date of Weighing`)
+  
+  
+NOTES_5<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder projects\\Tooth powder\\Drexel\\Drexel Batch 3\\Final_Drexel-Batch-3_Postdrilling_ 10_12-2022.xlsx',sheet = 'Subbatch 5 Freeze-dry5')
+colnames(NOTES_5)[1]="Lab sample ID"
+NOTES_5<-NOTES_5 %>% 
+  select('Lab sample ID','Notes', 'Tooth Powder','Start Date','End Date', 'Date of Weighing','Region')
+colnames(NOTES_5)[colnames(NOTES_5) == "Sample ID"] ="Lab sample ID"
+colnames(NOTES_5)[colnames(NOTES_5) == "Start Date"] ="Start Drill date"
+colnames(NOTES_5)[colnames(NOTES_5) == "End Date"] ="End Drill date"
+colnames(NOTES_5)[colnames(NOTES_5) == "Region"] ="Fraction"
+NOTES_5$`Start Drill date`<-as.character(NOTES_5$`Start Drill date`)
+NOTES_5$`End Drill date`<-as.character(NOTES_5$`End Drill date`)
+NOTES_5$`Date of Weighing`<-as.character(NOTES_5$`Date of Weighing`)
+
+notes_b3<-rbind(NOTES_1,NOTES_2,NOTES_3,NOTES_4,NOTES_5)
+```
+
+```{r Drexel Batch 4 PR, echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
+###
+NOTES_B4<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder projects\\Tooth powder\\Drexel\\DREXEL BATCH 4\\Final_Drexel-B4_2022_9_6_22 PR.xlsx',sheet = 'DrexelB4 FD subbatch1')
+colnames(NOTES_B4)[colnames(NOTES_B4) == "Sample"] ="Lab sample ID"
+
+NOTES_B4 <- cbind(NOTES_B4, Notes=NA)
+
+NOTES_B4<-NOTES_B4 %>% 
+  select('Lab sample ID', 'tooth powder','Start Date','End Date','Region')
+colnames(NOTES_B4)[colnames(NOTES_B4) == "Sample ID"] ="Lab sample ID"
+colnames(NOTES_B4)[colnames(NOTES_B4) == "Start Date"] ="Start Drill date"
+colnames(NOTES_B4)[colnames(NOTES_B4) == "End Date"] ="End Drill date"
+colnames(NOTES_B4)[colnames(NOTES_B4) == "tooth powder"] ="Tooth Powder"
+colnames(NOTES_B4)[colnames(NOTES_B4) == "Region"] ="Fraction"
+NOTES_B4 <- cbind(NOTES_B4, "Notes"=NA)
+NOTES_B4 <- cbind(NOTES_B4, "Date of Weighing"=NA)
+NOTES_B4$`Start Drill date`<-as.character(NOTES_B4$`Start Drill date`)
+NOTES_B4$`End Drill date`<-as.character(NOTES_B4$`End Drill date`)
+NOTES_B4$`Date of Weighing`<-as.character(NOTES_B4$`Date of Weighing`)
+
+
+NOTES_B4_2<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder projects\\Tooth powder\\Drexel\\DREXEL BATCH 4\\Final_Drexel-B4_2022_9_6_22 PR.xlsx',sheet = 'DrexelB4 FD subbatch 2')
+colnames(NOTES_B4_2)[colnames(NOTES_B4_2) == "Sample"] ="Lab sample ID"
+NOTES_B4_2<-NOTES_B4_2 %>% 
+  select('Lab sample ID', 'tooth powder','Start Date','End Date','Region')
+colnames(NOTES_B4_2)[colnames(NOTES_B4_2) == "Sample ID"] ="Lab sample ID"
+colnames(NOTES_B4_2)[colnames(NOTES_B4_2) == "Start Date"] ="Start Drill date"
+colnames(NOTES_B4_2)[colnames(NOTES_B4_2) == "End Date"] ="End Drill date"
+colnames(NOTES_B4_2)[colnames(NOTES_B4_2) == "tooth powder"] ="Tooth Powder"
+colnames(NOTES_B4_2)[colnames(NOTES_B4_2) == "Region"] ="Fraction"
+NOTES_B4_2 <- cbind(NOTES_B4_2, "Notes"=NA)
+NOTES_B4_2 <- cbind(NOTES_B4_2, "Date of Weighing"=NA)
+NOTES_B4_2$`Start Drill date`<-as.character(NOTES_B4_2$`Start Drill date`)
+NOTES_B4_2$`End Drill date`<-as.character(NOTES_B4_2$`End Drill date`)
+NOTES_B4_2$`Date of Weighing`<-as.character(NOTES_B4_2$`Date of Weighing`)
+
+
+NOTES_B4_3<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder projects\\Tooth powder\\Drexel\\DREXEL BATCH 4\\Final_Drexel-B4_2022_9_6_22 PR.xlsx',sheet = 'DrexelB4 FD subbatch 3')
+colnames(NOTES_B4_3)[colnames(NOTES_B4_3) == "Sample"] ="Lab sample ID"
+NOTES_B4_3<-NOTES_B4_3 %>% 
+  select('Lab sample ID', 'tooth powder','Start Date','End Date','Region')
+colnames(NOTES_B4_3)[colnames(NOTES_B4_3) == "Sample ID"] ="Lab sample ID"
+colnames(NOTES_B4_3)[colnames(NOTES_B4_3) == "Start Date"] ="Start Drill date"
+colnames(NOTES_B4_3)[colnames(NOTES_B4_3) == "End Date"] ="End Drill date"
+colnames(NOTES_B4_3)[colnames(NOTES_B4_3) == "tooth powder"] ="Tooth Powder"
+colnames(NOTES_B4_3)[colnames(NOTES_B4_3) == "Region"] ="Fraction"
+NOTES_B4_3 <- cbind(NOTES_B4_3, "Notes"=NA)
+NOTES_B4_3 <- cbind(NOTES_B4_3, "Date of Weighing"=NA)
+NOTES_B4_3$`Start Drill date`<-as.character(NOTES_B4_3$`Start Drill date`)
+NOTES_B4_3$`End Drill date`<-as.character(NOTES_B4_3$`End Drill date`)
+NOTES_B4_3$`Date of Weighing`<-as.character(NOTES_B4_3$`Date of Weighing`)
+
+NOTES_B4_4<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder projects\\Tooth powder\\Drexel\\DREXEL BATCH 4\\Final_Drexel-B4_2022_9_6_22 PR.xlsx',sheet = 'DrexelB4 FD subbatch 4')
+colnames(NOTES_B4_4)[colnames(NOTES_B4_4) == "Sample"] ="Lab sample ID"
+NOTES_B4_4<-NOTES_B4_4 %>% 
+  select('Lab sample ID', 'tooth powder','Start Date','End Date','Region')
+colnames(NOTES_B4_4)[colnames(NOTES_B4_4) == "Sample ID"] ="Lab sample ID"
+colnames(NOTES_B4_4)[colnames(NOTES_B4_4) == "Start Date"] ="Start Drill date"
+colnames(NOTES_B4_4)[colnames(NOTES_B4_4) == "End Date"] ="End Drill date"
+colnames(NOTES_B4_4)[colnames(NOTES_B4_4) == "tooth powder"] ="Tooth Powder"
+colnames(NOTES_B4_4)[colnames(NOTES_B4_4) == "Region"] ="Fraction"
+NOTES_B4_4 <- cbind(NOTES_B4_4, "Notes"=NA)
+NOTES_B4_4 <- cbind(NOTES_B4_4, "Date of Weighing"=NA)
+NOTES_B4_4$`Start Drill date`<-as.character(NOTES_B4_4$`Start Drill date`)
+NOTES_B4_4$`End Drill date`<-as.character(NOTES_B4_4$`End Drill date`)
+NOTES_B4_4$`Date of Weighing`<-as.character(NOTES_B4_4$`Date of Weighing`)
+
+NOTES_B4_5<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder projects\\Tooth powder\\Drexel\\DREXEL BATCH 4\\Final_Drexel-B4_2022_9_6_22 PR.xlsx',sheet = 'DrexelB4 FD subbatch 5')
+colnames(NOTES_B4_5)[colnames(NOTES_B4_5) == "Sample"] ="Lab sample ID"
+NOTES_B4_5<-NOTES_B4_5 %>% 
+  select('Lab sample ID', 'tooth powder','Start Date','End Date','Region')
+colnames(NOTES_B4_5)[colnames(NOTES_B4_5) == "Sample ID"] ="Lab sample ID"
+colnames(NOTES_B4_5)[colnames(NOTES_B4_5) == "Start Date"] ="Start Drill date"
+colnames(NOTES_B4_5)[colnames(NOTES_B4_5) == "End Date"] ="End Drill date"
+colnames(NOTES_B4_5)[colnames(NOTES_B4_5) == "tooth powder"] ="Tooth Powder"
+colnames(NOTES_B4_5)[colnames(NOTES_B4_5) == "Region"] ="Fraction"
+NOTES_B4_5 <- cbind(NOTES_B4_5, "Notes"=NA)
+NOTES_B4_5 <- cbind(NOTES_B4_5, "Date of Weighing"=NA)
+NOTES_B4_5$`Start Drill date`<-as.character(NOTES_B4_5$`Start Drill date`)
+NOTES_B4_5$`End Drill date`<-as.character(NOTES_B4_5$`End Drill date`)
+NOTES_B4_5$`Date of Weighing`<-as.character(NOTES_B4_5$`Date of Weighing`)
+
+NOTES_B4_6<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder projects\\Tooth powder\\Drexel\\DREXEL BATCH 4\\Final_Drexel-B4_2022_9_6_22 PR.xlsx',sheet = 'DrexelB4 FD subbatch6')
+colnames(NOTES_B4_6)[colnames(NOTES_B4_6) == "Sample"] ="Lab sample ID"
+NOTES_B4_6<-NOTES_B4_6 %>% 
+  select('Lab sample ID', 'tooth powder','Start Date','End Date','Region')
+colnames(NOTES_B4_6)[colnames(NOTES_B4_6) == "Sample ID"] ="Lab sample ID"
+colnames(NOTES_B4_6)[colnames(NOTES_B4_6) == "Start Date"] ="Start Drill date"
+colnames(NOTES_B4_6)[colnames(NOTES_B4_6) == "End Date"] ="End Drill date"
+colnames(NOTES_B4_6)[colnames(NOTES_B4_6) == "tooth powder"] ="Tooth Powder"
+colnames(NOTES_B4_6)[colnames(NOTES_B4_6) == "Region"] ="Fraction"
+NOTES_B4_6 <- cbind(NOTES_B4_6, "Notes"=NA)
+NOTES_B4_6 <- cbind(NOTES_B4_6, "Date of Weighing"=NA)
+NOTES_B4_6$`Start Drill date`<-as.character(NOTES_B4_6$`Start Drill date`)
+NOTES_B4_6$`End Drill date`<-as.character(NOTES_B4_6$`End Drill date`)
+NOTES_B4_6$`Date of Weighing`<-as.character(NOTES_B4_6$`Date of Weighing`)
+
+notes_b4<-rbind(NOTES_B4,NOTES_B4_2,NOTES_B4_3,NOTES_B4_4,NOTES_B4_5, NOTES_B4_6)
+```
+
+
+```{r Drexel Batch 5 PR, echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
+###
+
+NOTES_B5_final<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder projects\\Tooth powder\\Drexel\\Drexel Batch 5\\Final Drexel 5 PR 6_20_23.xlsx',sheet = 'Post Freeze-dry final TP weight')
+colnames(NOTES_B5_final)[colnames(NOTES_B5_final) == "Sample"] ="Lab sample ID"
+NOTES_B5_final<-NOTES_B5_final %>% 
+  select('Lab sample ID','Start Date','End Date','Notes', 'Date of Weighing','Tooth powder','REGION')
+colnames(NOTES_B5_final)[colnames(NOTES_B5_final) == "Tooth powder"] ="Tooth Powder"
+colnames(NOTES_B5_final)[colnames(NOTES_B5_final) == "Sample ID"] ="Lab sample ID"
+colnames(NOTES_B5_final)[colnames(NOTES_B5_final) == "Start Date"] ="Start Drill date"
+colnames(NOTES_B5_final)[colnames(NOTES_B5_final) == "End Date"] ="End Drill date"
+colnames(NOTES_B5_final)[colnames(NOTES_B5_final) == "REGION"] ="Fraction"
+NOTES_B5_final$`Date of Weighing`<-as.character(NOTES_B5_final$`Date of Weighing`)
+
+
+```
+
+```{r Drexel Batch 6 PR, echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
+###
+
+
+
+NOTES_B6_final<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder projects\\Tooth powder\\Drexel\\Drexel Batch 6\\Final DREXEL_B6_ PR 5_1_2023.xlsx',sheet = 'Post Freeze-dry final TP weight')
+colnames(NOTES_B6_final)[colnames(NOTES_B6_final) == "Sample"] ="Lab sample ID"
+NOTES_B6_final<-NOTES_B6_final %>% 
+  select('Lab sample ID','Start Date','End Date','Notes', 'Date of Weighing','Tooth powder','...4')
+colnames(NOTES_B6_final)[colnames(NOTES_B6_final) == "Sample ID"] ="Lab sample ID"
+colnames(NOTES_B6_final)[colnames(NOTES_B6_final) == "Start Date"] ="Start Drill date"
+colnames(NOTES_B6_final)[colnames(NOTES_B6_final) == "End Date"] ="End Drill date"
+colnames(NOTES_B6_final)[colnames(NOTES_B6_final) == "Tooth powder"] ="Tooth Powder"
+colnames(NOTES_B6_final)[colnames(NOTES_B6_final) == "...4"] ="Fraction"
+NOTES_B6_final$`Start Drill date`<-as.character(NOTES_B6_final$`Start Drill date`)
+NOTES_B6_final$`End Drill date`<-as.character(NOTES_B6_final$`End Drill date`)
+NOTES_B6_final$`Date of Weighing`<-as.character(NOTES_B6_final$`Date of Weighing`)
+```
+
+```{r Drexel Batch 7 PR, echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
+###
+
+NOTES_B7<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder projects\\Tooth powder\\Drexel\\Drexel Batch 7\\DREXEL_B7 In progress PR 7_18_23.xlsx',sheet = 'SAMPLE_LIST')
+colnames(NOTES_B7)[colnames(NOTES_B7) == "Sample"] ="Lab sample ID"
+NOTES_B7<-NOTES_B7 %>% 
+  select('SAMPLE ID','Date', 'Weighing Date...15','Tooth powder weight')
+colnames(NOTES_B7)[colnames(NOTES_B7) == "Sample ID"] ="Lab sample ID"
+colnames(NOTES_B7)[colnames(NOTES_B7) == "Start Date"] ="Start Drill date"
+NOTES_B7 <- cbind(NOTES_B7, "End Date"=NA)
+NOTES_B7<- NOTES_B7[!duplicated(NOTES_B7$`Lab sample ID`), ]
+
+NOTES_B7_runlist<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder projects\\Tooth powder\\Drexel\\Drexel Batch 7\\DREXEL_B7 In progress PR 7_18_23.xlsx',sheet = 'Runlist')
+colnames(NOTES_B7_runlist)[colnames(NOTES_B7_runlist) == "Sample ID"] ="Lab sample ID"
+NOTES_B7_runlist<-NOTES_B7_runlist %>% 
+  select('Lab sample ID','Notes')
+NOTES_B7_runlist<- NOTES_B7_runlist[!duplicated(NOTES_B7_runlist$`Lab sample ID`), ]
+
+
+```
+
+
+```{r Drexel Batch ALL PR, echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
+####
+
+notes_b1_to_b6<-rbind(Julia_notes, notes_b3,notes_b4,NOTES_B5_final,NOTES_B6_final)
+signif(notes_b1_to_b6$`Tooth Powder`, digits = 4)
+write.csv(notes_b1_to_b6, "H:\\nguyet53\\R\\Drexel R\\Drexel_notes_b1_to_b6.csv", row.names=TRUE)
+
+NOTES_Blessing<- read_excel('C:\\Users\\nguyet53\\Downloads\\Drexel_Samples_with weights_BA0503231.xlsx',sheet = 'All samples with mass_notes')
+colnames(NOTES_Blessing)[colnames(NOTES_Blessing) == "Sample"] ="Lab sample ID"
+colnames(NOTES_Blessing)[colnames(NOTES_Blessing) == "Note"] ="Notes"
+colnames(NOTES_Blessing)[colnames(NOTES_Blessing) == "Tooth Powder Weight (mg)"] ="Tooth Powder"
+NOTES_Blessing$`Tooth Powder`<-as.numeric(NOTES_Blessing$`Tooth Powder`)
+signif(NOTES_Blessing$`Tooth Powder`, digits = 4)
+
+missing<-notes_b1_to_b6[!notes_b1_to_b6$`Tooth Powder`%in%NOTES_Blessing$`Tooth Powder`,]
+write.csv(missing, "H:\\nguyet53\\R\\Drexel R\\Drexel_notes_b3_to_b6_contaminated.csv", row.names=TRUE)
+
+
+
+
+mdf<-notes_b1_to_b6 %>% left_join(NOTES_Blessing %>% select("Lab sample ID", "Tooth Powder", "Stage"), by ="Tooth Powder" )
+
+notes_b1_to_b6<-anti_join(notes_b1_to_b6, missing, by=c("Tooth Powder"))
+write.csv(notes_b1_to_b6, "H:\\nguyet53\\R\\Drexel R\\Drexel_notes_b3_to_b6_only.csv", row.names=TRUE)
+
+
+all_notes_confirmed<- read_excel('H:\\nguyet53\\R\\Drexel R\\Drexel_all_notes_confirmed_2024.xlsx')
+
+
+all_notes_confirmed_2T<-all_notes_confirmed %>% 
+  filter(if_any(Fraction, ~ str_detect(., "2T")))
+write.csv(all_notes_confirmed_2T, "H:\\nguyet53\\R\\Drexel R\\Drexel_notes_2T.csv", row.names=TRUE)
+
+
+all_notes_confirmed_3T<-all_notes_confirmed %>% 
+  filter(if_any(Fraction, ~ str_detect(., "3T")))
+write.csv(all_notes_confirmed_3T, "H:\\nguyet53\\R\\Drexel R\\Drexel_notes_3T.csv", row.names=TRUE)
+
+         
+all_notes_confirmed_Post<-all_notes_confirmed %>% 
+  filter(if_any(Fraction, ~ str_detect(., "Post")))
+all_notes_confirmed_POST<-all_notes_confirmed %>% 
+  filter(if_any(Fraction, ~ str_detect(., "POSTNATAL")))
+all_notes_confirmed_Post<-rbind(all_notes_confirmed_Post,all_notes_confirmed_POST)
+write.csv(all_notes_confirmed_Post, "H:\\nguyet53\\R\\Drexel R\\Drexel_notes_Post.csv", row.names=TRUE)
+
+
+all_notes_confirmed_Pre<-all_notes_confirmed %>% 
+  filter(if_any(Fraction, ~ str_detect(., "Pre")))
+write.csv(all_notes_confirmed_Pre, "H:\\nguyet53\\R\\Drexel R\\Drexel_notes_Pre.csv", row.names=TRUE)
+
+
+all_notes_confirmed_blank<-all_notes_confirmed %>% 
+  filter(if_any(Fraction, ~ str_detect(., "Blank")))
+all_notes_confirmed_NA<-all_notes_confirmed[is.na(all_notes_confirmed$Fraction), ]
+all_notes_confirmed_blank<-rbind(all_notes_confirmed_blank,all_notes_confirmed_NA)
+all_notes_confirmed$`Tooth Powder`<-as.numeric(all_notes_confirmed$`Tooth Powder`)
+signif(all_notes_confirmed$`Tooth Powder`, digits = 4)
+
+
+write.csv(all_notes_confirmed_blank, "H:\\nguyet53\\R\\Drexel R\\Drexel_notes_blank.csv", row.names=TRUE)
+
+
+
+```
+
+```{r echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
+Combined_extractionBatches_Drexel<- read_excel('H:\\nguyet53\\R\\Drexel R\\Combined_extractionBatches_Drexel.xlsx',)
+all_notes_confirmed<- read_excel('H:\\nguyet53\\R\\Drexel R\\Drexel_all_notes_confirmed_2024.xlsx')
+
+colnames(Combined_extractionBatches_Drexel)[colnames(Combined_extractionBatches_Drexel) == "Tooth Powder Weight (mg)"] ="Tooth Powder"
+colnames(Combined_extractionBatches_Drexel)[colnames(Combined_extractionBatches_Drexel) == "Stage"] ="Fraction"
+Combined_extractionBatches_Drexel$`Tooth Powder`<-as.numeric(Combined_extractionBatches_Drexel$`Tooth Powder`)
+signif(Combined_extractionBatches_Drexel$`Tooth Powder`, digits = 5)
+
+all_notes_confirmed$`Tooth Powder`<-as.numeric(all_notes_confirmed$`Tooth Powder`)
+setDT(all_notes_confirmed)[, paste0("Lab sample ID", 1:2) := tstrsplit(`Lab sample ID`, "_")]
+colnames(all_notes_confirmed)[colnames(all_notes_confirmed) == "Lab sample ID"] ="Lab sample ID - not normalized"
+colnames(all_notes_confirmed)[colnames(all_notes_confirmed) == "Lab sample ID1"] ="Lab sample ID"
+
+
+
+df2 <- merge(y=all_notes_confirmed,x=Combined_extractionBatches_Drexel, 
+        by=c('Lab sample ID','Tooth Powder'), all.y=FALSE, all.x = TRUE)
+df2<-df2[!duplicated(df2$'Extraction Label'), ]
+df2<-df2[order(df2$`Extraction Batch`, decreasing = TRUE),]
+
+
+na_rows <- df2[is.na(df2$'#'), ]
+
+write.csv(df2, "H:\\nguyet53\\R\\Drexel R\\Combined_extractionBatches_Drexel_a.csv", row.names=TRUE)
+write.csv(na_rows, "H:\\nguyet53\\R\\Drexel R\\Combined_extractionBatches_Drexel_na.csv", row.names=TRUE)
+
+```
+
+
+Raw Drexel data  
+
+```{r JH Drexel notes Example, echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
+all_notes_confirmed %>%
+  kbl(
+    caption = "<center><span style='font-size:30px'>JH Drexel samples - raw notes</span></center>") %>% 
+  kable_styling( stripe_color = "gray!6",
+    bootstrap_options = c("striped", "hover")) %>% 
+    scroll_box(width = "700px", height = "500px")
+
+```
+
+
+
+```{r QC Reference Sheet, echo=FALSE,message=FALSE,warning=FALSE, results='hide' }
+OCPPBDE_QC<- read_excel('H:\\nguyet53\\R\\Drexel R\\Drexel PBDE OCP_B1-13_101123.xlsx')
+names(OCPPBDE_QC)[names(OCPPBDE_QC) == 'Name'] <- 'Extraction Label'
+
+
+OCPPBDE<-OCPPBDE_QC[ , !names(OCPPBDE_QC) %in% c("...1","...2","Data File","Type","Level")]
+OCPPBDE_QC<-OCPPBDE_QC[ , !names(OCPPBDE_QC) %in% c("...1","...2","Extraction File","Level")]
+
+
+OCPPBDE_QC_Outliers<-OCPPBDE_QC %>%  filter(`Data File`=='DrB9_SpTgtP042.D' |`Data File`=='DrB11_SpTgtP074.D' | `Data File`=='DrB12_SpTgtP045.D'| `Data File`=='DrB13_SpTgtP046.D')
+
+OCPPBDE_QC<-OCPPBDE_QC[-(which(OCPPBDE_QC$`Data File` %in% "DrB9_SpTgtP042.D" |OCPPBDE_QC$`Data File`=="DrB11_SpTgtP074.D" | OCPPBDE_QC$`Data File`=="DrB12_SpTgtP045.D"| OCPPBDE_QC$`Data File`=="DrB13_SpTgtP046.D")),]
+
+PCB_QC<- read_excel('H:\\nguyet53\\R\\Drexel R\\Drexel PCB_B1-13_101123.xlsx')
+colnames(PCB_QC)[3]="Extraction Label"
+PCB<-PCB_QC[,-c(1:2,4:7)]
+PCB_QC<-PCB_QC[,-c(1:3,6:7)]
+```
+
+
+
+
+###  Batches 1-63
+```{r Load all batches, echo=FALSE,message=FALSE,warning=FALSE, results='hide' }
+
+all_weight <- import_list('H:\\nguyet53\\R\\Drexel R\\Copy of Drexel extraction_Batches_BA.xlsx', setclass = "tbl", rbind = TRUE)
+
+all_weight<-all_weight %>%
+   select("Lab sample ID","Stage","Extraction Label", "Tooth Powder Weight (mg)","Stage")
+
+#Julia File: ECHO Drexel Batch 1 and 2 Blank Weights JH
+
+NOTES_blank_weights<- read_excel('J:\\PM\\ORG-GC\\A2 - Non-HHEAR Projects\\Tooth Powder Projects\\Tooth powder\\Drexel\\Drexel 1and 2 JH\\ECHO Drexel Batch 1 and 2 Blank Weights JH.xlsx')
+NOTES_blank_weights<-NOTES_blank_weights %>% 
+  select('...4','...23')
+colnames(NOTES_blank_weights)[1]="Lab sample ID"
+
+
+all_weight<-all_weight %>%
+  filter_all(all_vars(.!='QC'))
+all_weight<-all_weight %>%
+  filter_all(all_vars(.!='Blank'))
+```
+
+```{r Display B 1-63, echo=FALSE,message=FALSE,warning=FALSE}
+df2 %>%
+  select('Lab sample ID','Tooth Powder','Fraction.x','Drill Round #','Extraction Batch','Extraction Label','Extraction Date','Cleanup date','#') %>% 
+  kbl(
+    caption = "<center><span style='font-size:30px'>Drexel: Batches 1-63</span></center>") %>% 
+  kable_styling( stripe_color = "gray!6",
+    bootstrap_options = c("striped", "hover")) %>% 
+    scroll_box(width = "700px", height = "500px")
+```
+
+
+
+```{r Include notes into batches, echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
+
+all_OCPPBDE<-merge(OCPPBDE,all_weight,by='Extraction Label')
+all_OCPPBDE <- all_OCPPBDE[, c(1,15,16, 17, 2, 3,4,5,6,7,8,9,10,11,12,13,14)]
+
+all_PCB<-merge(PCB,all_weight,by='Extraction Label')
+all_PCB <- all_PCB[, c(1,9,10, 11, 2, 3,4,5,6,7,8)]
+
+notes_OCPPBDE<-merge(all_OCPPBDE,all_notes_confirmed,by='Lab sample ID')
+notes_OCPPBDE<-notes_OCPPBDE[!duplicated(notes_OCPPBDE$`Extraction Label`),]
+
+notes_PCB<-merge(all_PCB,all_notes_confirmed,by='Lab sample ID')
+notes_PCB<-notes_PCB[!duplicated(notes_PCB$`Extraction Label`), ]
+notes_PCB_venn<-notes_PCB[!duplicated(notes_PCB$`Extraction Label`), ]
+
+notes_OCPPBDE <- notes_OCPPBDE %>% replace(is.na(.), 0)
+notes_OCPPBDE_venn <- notes_OCPPBDE %>% replace(is.na(.), 0)
+```
+
+
+
+
+# Samples with notes
+### OCP samples- modified
+
+```{r Df for Notes, echo=FALSE,message=FALSE,warning=FALSE}
+#OCP
+cont_OCP<-data.frame(notes_OCPPBDE[grep("Contaminated", notes_OCPPBDE$Stage), ])
+hardware_OCP<-data.frame(notes_OCPPBDE[grep("- Hardware Malfunction", notes_OCPPBDE$Stage), ])
+two_OCP<-data.frame(notes_OCPPBDE[grep("-2", notes_OCPPBDE$Stage), ])
+one_OCP<-data.frame(notes_OCPPBDE[grep("-1", notes_OCPPBDE$Stage), ])
+two_1_OCP<-data.frame(notes_OCPPBDE[grep("_2", notes_OCPPBDE$Stage), ])
+one_1_OCP<-data.frame(notes_OCPPBDE[grep("_1", notes_OCPPBDE$Stage), ])
+Pre_OCP<-data.frame(notes_OCPPBDE[grep("Pre Natal", notes_OCPPBDE$Stage), ])
+
+
+
+OCP_removed<-rbind(cont_OCP,hardware_OCP,two_OCP,one_OCP,two_1_OCP, one_1_OCP, Pre_OCP)
+OCP_removed<-OCP_removed %>% select("Lab.sample.ID", "Extraction.Label","Stage", "Notes")
+
+```
+
+
+
+```{r Display Samples with notes,echo=FALSE,message=FALSE,warning=FALSE }
+OCP_removed %>%
+  kbl(
+    caption = "<center><span style='font-size:30px'>Modified or removed samples</span></center>"
+    ) %>% 
+kable_styling( stripe_color = "gray!6",
+  bootstrap_options = c("striped", "hover")) %>% 
+  scroll_box(width = "700px", height = "500px")
+```
+
+### QCs - removed
+```{r Display QC with notes,echo=FALSE,message=FALSE,warning=FALSE}
+OCPPBDE_QC_Outliers %>%
+  kbl(
+    caption = "<center><span style='font-size:30px'>Removed QCs</span></center>") %>% 
+  kable_styling( stripe_color = "gray!6",
+    bootstrap_options = c("striped", "hover")) %>% 
+    scroll_box(width = "700px", height = "500px")
+```
+
+
+
+```{r Removing unwanted samples, echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
+
+remove_these<-c("Contaminated","-2","-1","_1","_2","- Hardware Malfunction"," ","-","_")
+remove_these <- str_c(remove_these, collapse="|")
+
+#OCP
+notes_OCPPBDE$Stage<-str_remove_all(notes_OCPPBDE$Stage, remove_these)
+
+
+#PCBs
+notes_PCB$Stage<-str_remove_all(notes_PCB$Stage, remove_these)
+
+#Detect Prenatal samples
+T_Pre_OCP<-notes_OCPPBDE %>% filter(if_any(Stage, ~ str_detect(., "Pre")))
+T_Pre_PCB<-notes_PCB %>% filter(if_any(Stage, ~ str_detect(., "Pre")))
+```
+
+
+
+### Fractions
+```{r OCP: Fractions (2T,3T,Post), echo=FALSE,message=FALSE,warning=FALSE, results='hide'} 
+
+#T2
+T_2_OCP<-notes_OCPPBDE %>% 
+  filter(if_any(Stage, ~ str_detect(., "2T"))) %>% 
+  rename_with(~ str_remove(., " Results"), everything())
+
+    
+#T3
+T_3_OCP<-notes_OCPPBDE %>% 
+  filter(if_any(Stage, ~ str_detect(., "3T"))) %>% 
+  rename_with(~ str_remove(., " Results"), everything())
+
+T_Post_OCP<-notes_OCPPBDE %>% 
+  filter(if_any(Stage, ~ str_detect(., "Post"))) %>% 
+  rename_with(~ str_remove(., " Results"), everything())
+
+T_Pre_OCP_0<-notes_OCPPBDE %>% filter(if_any(Stage, ~ str_detect(., "Pre")))
+T_Pre_PCB_0<-notes_PCB %>% filter(if_any(Stage, ~ str_detect(., "Pre-")))
+```
+#### Sample Fraction - 2T
+```{r Preview Fraction Data -2T, echo=FALSE,message=FALSE}
+T_2_OCP %>%
+    kbl(
+    caption = "<center><span style='font-size:30px'>Drexel: Fraction T2 - OCP/PBDE</span></center>") %>% 
+  kable_styling( stripe_color = "gray!6",
+    bootstrap_options = c("striped", "hover")) %>% 
+    scroll_box(width = "1000px", height = "500px")
+
+```
+#### Sample Fraction- 3T
+```{r Preview Fraction Data-3T, echo=FALSE,message=FALSE}
+T_3_OCP %>%
+      kbl(
+    caption = "<center><span style='font-size:30px'>Drexel: Fraction T3 - OCP/PBDE</span></center>") %>% 
+  kable_styling( stripe_color = "gray!6",
+    bootstrap_options = c("striped", "hover")) %>% 
+    scroll_box(width = "1000px", height = "500px")
+```
+#### Sample Fraction - Post
+```{r Preview Fraction Data-Post, echo=FALSE,message=FALSE}
+T_Post_OCP %>%
+    kbl(
+    caption = "<center><span style='font-size:30px'>Drexel: Fraction Post - OCP/PBDE</span></center>") %>% 
+  kable_styling( stripe_color = "gray!6",
+    bootstrap_options = c("striped", "hover")) %>% 
+    scroll_box(width = "1000px", height = "500px")
+```
+
+```{r PCB: Fractions (2T,3T,Post), echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
+T_2_PCB<-notes_PCB %>% 
+  filter(if_any(Stage, ~ str_detect(., "2T"))) %>% 
+  rename_with(~ str_remove(., " Results"), everything())
+
+T_3_PCB<-notes_PCB %>% 
+  filter(if_any(Stage, ~ str_detect(., "3T"))) %>% 
+  rename_with(~ str_remove(., " Results"), everything())
+
+T_Post_PCB<-notes_PCB %>% 
+  filter(if_any(Stage, ~ str_detect(., "Post"))) %>% 
+  rename_with(~ str_remove(., " Results"), everything())
+```
+
+
+
+# QC Tables
+
+```{r QC OCP Spiked - mean,echo=FALSE,message=FALSE,warning=FALSE }
+#Spiked QCs
+OCPPBDE_QC_Spiked<-OCPPBDE_QC %>% 
+  group_by(Type) %>% 
+  filter(Type == "MatrixSpike" ) %>% 
+  mutate(Batch_number = str_sub(`Data File`,1,5) ) %>% #keep only : 1st character until 5th character
+  mutate(Sample_name = str_sub(`Data File`,6) )
+
+OCPPBDE_QC_Spiked$Batch_number <- gsub("_", "", OCPPBDE_QC_Spiked$Batch_number) #remove "_" in Batch Number column
+OCPPBDE_QC_Spiked$Sample_name<-gsub("_", "", OCPPBDE_QC_Spiked$Sample_name) # remove "_" in "Spiked Sample" column
+OCPPBDE_QC_Spiked$Sample_name<-gsub(".D", "", OCPPBDE_QC_Spiked$Sample_name)
+
+OCPPBDE_QC_Spikednotes_OCPPBDE_venn <- OCPPBDE_QC_Spiked %>% replace(is.na(.), 0)
+
+
+OCPPBDE_QC_recovery<-OCPPBDE_QC_Spiked %>% 
+  mutate((across(ends_with('Results'), ~ ./0.2*(100)))) %>% 
+  group_by(Batch_number)
+```
+
+
+```{r QC OCP Spiked - Recovery Calculation }
+#Spiked QC recovery was calculated with target of 0.2ppm
+
+OCPPBDE_QC_recovery_mean<-OCPPBDE_QC_Spiked %>% 
+  mutate((across(ends_with('Results'), ~ ./0.2*(100)))) %>% 
+  group_by(Batch_number) %>% 
+  summarise_at(vars("HCB Results", "b-HCH Results", "Oxychlordane Results","trans-Nonachlor Results","pp-DDE-2 Results","pp-DDE Results","BDE-28 Results","pp-DDT Results","pp-DDT-2 Results","BDE-47 Results","BDE-100 Results","BDE-99 Results","BDE-153 Results","BDE-153 Results"),mean) %>% 
+  ungroup()
+```
+
+
+```{r QC OCP Spiked - mean 2,echo=FALSE,message=FALSE,warning=FALSE }
+OCPPBDE_QC_recovery_mean<-OCPPBDE_QC_recovery_mean[c(1,6:13,2:5),]
+
+OCPPBDE_QC_recovery_mean_distribution<-OCPPBDE_QC_Spiked %>% 
+  group_by(Batch_number) %>% 
+  summarise_at(vars("HCB Results", "b-HCH Results", "Oxychlordane Results","trans-Nonachlor Results","BDE-28 Results","pp-DDT Results","pp-DDT-2 Results","BDE-47 Results","BDE-100 Results","BDE-99 Results","BDE-153 Results","BDE-153 Results"),mean) %>% 
+  ungroup()
+
+```
+
+```{r QC OCP Spiked - sd,echo=FALSE,message=FALSE,warning=FALSE }
+
+#Spiked QCs
+
+OCPPBDE_QC_recovery_sd<-OCPPBDE_QC_Spiked %>% 
+  group_by(Batch_number) %>% 
+  summarise_at(vars("HCB Results", "b-HCH Results", "Oxychlordane Results","trans-Nonachlor Results","BDE-28 Results","pp-DDT Results","pp-DDT-2 Results","BDE-47 Results","BDE-100 Results","BDE-99 Results","BDE-153 Results","BDE-153 Results"),sd) %>% 
+  ungroup()
+
+OCPPBDE_QC_recovery_sd<-OCPPBDE_QC_recovery_sd[c(1,6:13,2:5),]
+
+
+
+OCPPBDE_QC_recovery<-OCPPBDE_QC_recovery %>% 
+    rename_with(~ str_remove(., " Results"), everything())
+
+OCPPBDE_QC_recovery_mean<-OCPPBDE_QC_recovery_mean %>% 
+    rename_with(~ str_remove(., " Results"), everything())
+
+analytes<-rownames(OCPPBDE_QC_recovery_mean)
+batches<-colnames(OCPPBDE_QC_recovery_mean)
+```
+
+
+
+```{r QC dataframe - Spiked PCB,echo=FALSE,message=FALSE,warning=FALSE }
+PCB_QC_Spiked<-PCB_QC %>% 
+  group_by(Type) %>% 
+  filter(Type == "MatrixSpike" ) %>% 
+  mutate(Batch_number = str_sub(`Data File`,1,5) ) %>% #keep only : 1st character until 5th character
+  mutate(Sample_name = str_sub(`Data File`,6) )
+
+PCB_QC_Spiked$Batch_number <- gsub("_", "", PCB_QC_Spiked$Batch_number) #remove "_"
+PCB_QC_Spiked$Sample_name<-gsub("_", "", PCB_QC_Spiked$Sample_name)
+PCB_QC_Spiked$Sample_name<-gsub(".D", "", PCB_QC_Spiked$Sample_name)
+PCB_QC_Spiked <- PCB_QC_Spiked %>% replace(is.na(.), 0)
+
+PCB_QC_recovery<-PCB_QC_Spiked %>% 
+  mutate((across(ends_with('Results'), ~ ./0.2*(100)))) %>% 
+  group_by(Batch_number)
+
+PCB_QC_recovery_mean<-PCB_QC_Spiked %>% 
+  mutate((across(ends_with('Results'), ~ ./0.2*(100)))) %>% 
+  group_by(Batch_number) %>% 
+  summarise_at(vars("PCB-118  Results","PCB-153 Results","PCB-138 Results","PCB-156 Results","PCB-157 Results","PCB-180 Results","PCB-170 Results"),mean) %>% 
+  ungroup()
+
+PCB_QC_recovery_mean<-PCB_QC_recovery_mean[c(1,6:13,2:5),]
+
+
+
+
+PCB_QC_recovery<-PCB_QC_recovery %>% 
+    rename_with(~ str_remove(., " Results"), everything())
+
+PCB_QC_recovery_mean<-PCB_QC_recovery_mean %>% 
+    rename_with(~ str_remove(., " Results"), everything())
+
+```
+
+
+
+```{r QC dataframe - Unspiked OCP,echo=FALSE,message=FALSE,warning=FALSE }
+#Unspiked QCs
+OCPPBDE_QC_Unspike<-OCPPBDE_QC %>% 
+  group_by(Type) %>% 
+  filter(Type == "MatrixBlank") %>% 
+  mutate(Batch_number = str_sub(`Data File`,1,5) ) %>% #keep only : 1st character until 5th character
+  mutate(Sample_name = str_sub(`Data File`,6) ) %>% 
+  mutate_all(funs(replace_na(.,0)))
+
+
+OCPPBDE_QC_Unspike$Batch_number <- gsub("_", "", OCPPBDE_QC_Unspike$Batch_number) #remove "_"
+OCPPBDE_QC_Unspike$Sample_name<-gsub("_", "", OCPPBDE_QC_Unspike$Sample_name)
+OCPPBDE_QC_Unspike$Sample_name<-gsub(".D", "", OCPPBDE_QC_Unspike$Sample_name)
+
+
+#Replace 2 samples from batch 1 as batch 2
+OCPPBDE_QC_Unspike$`Data File`[OCPPBDE_QC_Unspike$`Data File` == 'DrB1_InstQC_unspikedpool_3.D'] <- 'DrB2_InstQC_unspikedpool_3.D'
+OCPPBDE_QC_Unspike$`Data File`[OCPPBDE_QC_Unspike$`Data File` == 'DrB1_InstQC_unspikedpool_4.D'] <- 'DrB2_InstQC_unspikedpool_4.D'
+
+OCPPBDE_QC_unspike_mean<-OCPPBDE_QC_Unspike %>% 
+  group_by(Batch_number) %>% 
+  summarise_at(vars("HCB Results", "b-HCH Results", "Oxychlordane Results","trans-Nonachlor Results","BDE-100 Results","BDE-99 Results","BDE-153 Results","BDE-153 Results"),mean) %>% 
+  ungroup() %>% 
+    rename_with(~ str_remove(., " Results"), everything())
+
+
+```
+
+```{r QC dataframe - Unspiked PCB,echo=FALSE,message=FALSE,warning=FALSE}
+PCB_QC_Unspike<-PCB_QC %>% 
+  group_by(Type) %>% 
+  filter(Type == "MatrixBlank") %>% 
+  mutate(Batch_number = str_sub(`Data File`,1,5) ) %>% #keep only : 1st character until 5th character
+  mutate(Sample_name = str_sub(`Data File`,6) ) %>% 
+  mutate_all(funs(replace_na(.,0)))
+
+
+PCB_QC_Unspike$Batch_number <- gsub("_", "", PCB_QC_Unspike$Batch_number) #remove "_"
+PCB_QC_Unspike$Sample_name<-gsub("_", "", PCB_QC_Unspike$Sample_name)
+PCB_QC_Unspike$Sample_name<-gsub(".D", "", PCB_QC_Unspike$Sample_name)
+
+
+#Replace 2 samples from batch 1 as batch 2
+PCB_QC_Unspike$`Data File`[PCB_QC_Unspike$`Data File` == 'DrB1_InstQC_unspikedpool_3.D'] <- 'DrB2_InstQC_unspikedpool_3.D'
+PCB_QC_Unspike$`Data File`[PCB_QC_Unspike$`Data File` == 'DrB1_InstQC_unspikedpool_4.D'] <- 'DrB2_InstQC_unspikedpool_4.D'
+
+PCB_QC_unspike_mean<-PCB_QC_Unspike %>% 
+  group_by(Batch_number) %>% 
+  summarise_at(vars("PCB-118  Results","PCB-153 Results","PCB-138 Results","PCB-156 Results","PCB-157 Results","PCB-180 Results","PCB-170 Results"),mean) %>% 
+  ungroup() %>% 
+    rename_with(~ str_remove(., " Results"), everything())
+```
+
+
+
+### Spiked - OCPs
+```{r Preview QCs - Spiked OCP, echo=FALSE,message=FALSE,warning=FALSE}
+#Spiked
+OCPPBDE_QC_Spiked %>%
+  kbl(
+    caption = "<left><span style='font-size:30px'>OCPS: Spiked Targetted QCs</span></left>") %>% 
+  kable_styling( stripe_color = "gray!6",
+    bootstrap_options = c("striped", "hover")) %>% 
+    scroll_box(width = "2000px", height = "500px")
+
+```
+
+### Spiked - PCB 
+```{r Preview QCs - Spiked PCB, echo=FALSE,message=FALSE,warning=FALSE}
+#Spiked
+PCB_QC_Spiked %>%
+  kbl(
+    caption = "<center><span style='font-size:30px'>PCB: Spiked Targetted QCs</span></center>") %>% 
+  kable_styling( stripe_color = "gray!6",
+    bootstrap_options = c("striped", "hover")) %>% 
+    scroll_box(width = "1000px", height = "500px")
+
+```
+### Unspiked - OCP
+```{r Preview QCs - UnSpiked OCP, echo=FALSE,message=FALSE,warning=FALSE}
+#Unspiked
+OCPPBDE_QC_Unspike %>%
+  kbl(
+    caption = "<center><span style='font-size:30px'>OCP: Unspiked Targetted QCs</span></center>") %>% 
+  kable_styling( stripe_color = "gray!6",
+    bootstrap_options = c("striped", "hover")) %>% 
+    scroll_box(width = "700px", height = "500px")
+```
+
+### PCB
+
+```{r Preview QCs - UnSpiked PCB, echo=FALSE,message=FALSE,warning=FALSE}
+#Unspiked
+PCB_QC_Unspike %>%
+  kbl(
+    caption = "<center><span style='font-size:30px'>PCB: Unspiked Targetted QCs</span></center>") %>% 
+  kable_styling( stripe_color = "gray!6",
+    bootstrap_options = c("striped", "hover")) %>% 
+    scroll_box(width = "700px", height = "500px")
+```
+
+
+```{r Venn Dataframes, echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
+
+common_2T_list<-as.list(T_2_OCP$`Lab sample ID`)
+common_3T_list<-as.list(T_3_OCP$`Lab sample ID`)
+common_Post_list<-as.list(T_Post_OCP$`Lab sample ID`)
+common_Pre_list<-as.list(T_Pre_OCP$`Lab sample ID`)
+common_Pre_list_0<-as.list(T_Pre_OCP_0$`Lab sample ID`)
+
+
+common_list_1<- list(
+  "2T" = common_2T_list, 
+  "3T" = common_3T_list, 
+  "Post Natal" = common_Post_list,
+  "Pre Natal" = common_Pre_list)
+
+common_list_2<- list(
+  "2T" = common_2T_list, 
+  "3T" = common_3T_list, 
+  "Post Natal" = common_Post_list)
+
+
+```
+
+# Venn Diagrams - samples with overlapping fractions
+
+```{r Display Venn diagrams - plot, out.width="50%", echo=FALSE, results='hide'}
+#With Prenatal
+OCP_venn_prenatal<-ggvenn(
+  common_list_1, 
+  fill_color = c("#0073C2FF", "#EFC000FF", "#868686FF", "#CD534CFF"),
+  stroke_size = 0.5, set_name_size = 4
+  )+ggtitle("Before") + theme(plot.title = element_text(hjust = 0.5))
+
+#Without Prenatal
+OCP_venn_no_prenatal<-ggvenn(
+  common_list_2, 
+  fill_color = c("#0073C2FF", "#EFC000FF", "#868686FF", "#CD534CFF"),
+  stroke_size = 0.5, set_name_size = 4
+  ) +ggtitle("After") + theme(plot.title = element_text(hjust = 0.5))
+
+
+OCP_venn_prenatal
+OCP_venn_no_prenatal
+```
+
+
+# Sample Plots
+### OCP : by batch - boxplot
+
+
+```{r OCP by batch plot, echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
+
+notes_OCPPBDE<-notes_OCPPBDE %>%
+  group_by(Stage) %>% 
+  mutate(Batch_number = str_sub(`Extraction Label`,1,5) ) %>% #keep only : 1st character until 5th character
+  mutate(Sample_name = str_sub(`Extraction Label`,6) )
+
+notes_OCPPBDE$Batch_number <- gsub("_", "", notes_OCPPBDE$Batch_number) #remove "_"
+notes_OCPPBDE$Sample_name<-gsub("_", "", notes_OCPPBDE$Sample_name)
+notes_OCPPBDE$Sample_name<-gsub(".D", "", notes_OCPPBDE$Sample_name)
+notes_OCPPBDE%>% replace(is.na(.), 0)
+
+notes_OCPPBDE<-notes_OCPPBDE %>% 
+  mutate(Batch_num=str_sub(`Batch_number`,4,5))
+
+notes_OCPPBDE$Batch_num<-as.numeric(notes_OCPPBDE$Batch_num)
+
+notes_OCPPBDE<-notes_OCPPBDE %>%
+  group_by(Stage) %>% 
+  arrange((Batch_num))
+
+notes_OCPPBDE_batch<-data.frame(notes_OCPPBDE$Batch_num)
+```
+
+
+```{r PCB by batch plot, echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
+
+notes_PCB<-notes_PCB %>% 
+  group_by(Stage) %>% 
+  mutate(Batch_number = str_sub(`Extraction Label`,1,5) ) %>% #keep only : 1st character until 5th character
+  mutate(Sample_name = str_sub(`Extraction Label`,6) )
+
+notes_PCB$Batch_number <- gsub("_", "", notes_PCB$Batch_number) #remove "_"
+notes_PCB$Sample_name<-gsub("_", "", notes_PCB$Sample_name)
+notes_PCB$Sample_name<-gsub(".D", "", notes_PCB$Sample_name)
+
+notes_PCB<-notes_PCB %>% 
+  mutate(Batch_num=str_sub(`Batch_number`,4,5))
+
+notes_PCB$Batch_num<-as.numeric(notes_PCB$Batch_num)
+
+notes_PCB<-notes_PCB %>%
+  group_by(Stage) %>% 
+  arrange((Batch_num))
+
+notes_PCB_batch<-data.frame(notes_PCB$Batch_num)
+```
+
+
+
+```{r Sample Plot - OCP by batch ,echo=FALSE,message=FALSE,warning=FALSE,results='hide', fig.height = 100, fig.width = 25}
+q<-notes_OCPPBDE %>% 
+  select("Stage","HCB Results","Oxychlordane Results","trans-Nonachlor Results","pp-DDE Results","pp-DDT Results","Tooth Powder","Start Drill date", "Batch_num") %>% 
+  group_by("Batch_num") %>% 
+  gather(var, value,-Stage) %>% 
+  filter(str_detect(var,"Results"))
+  
+q$value<-as.numeric(as.character(q$value))
+signif(q$value,digits = 8)
+
+s<-notes_OCPPBDE %>% 
+  select("Stage","HCB Results","Oxychlordane Results","trans-Nonachlor Results","pp-DDT Results","pp-DDE Results","Tooth Powder","Start Drill date", "Batch_num") %>%
+  group_by("Batch_num") %>%
+  gather(var, value,-Batch_num) %>% 
+  filter(str_detect(var,"Results"))
+
+s$value<-as.numeric(as.character(s$value))
+signif(s$value,digits = 8)
+
+ocp_batches<-cbind(q,s)
+ocp_batches <- ocp_batches[, !duplicated(colnames(ocp_batches), fromLast = TRUE)] 
+ocp_batches$var <- gsub("Results", "", ocp_batches$var) #remove "Results"
+
+
+#Boxplot
+ocp_batches %>% 
+  group_by(Stage, Batch_num) %>% 
+  ggplot(aes(x = factor(Batch_num),  y = value,fill=Stage)) +
+  geom_boxplot(lwd=1.25,outlier.colour="red", outlier.shape=19,
+                outlier.size=5)+
+  facet_wrap(~var, scales = "free",ncol=1)+
+  labs(y= "Concentration (log10)", x = "Batch number")+
+  scale_fill_brewer(palette="Set3")+
+  scale_y_continuous(trans='log10')+
+  ggtitle("Batch Effect Evaluation - OCP/PBDE, by batch number") + 
+  theme(legend.key.height= unit(5, 'cm'),
+        legend.key.width= unit(5, 'cm'),
+        legend.title = element_text(size=25),
+        legend.text = element_text(size=25),
+        plot.title = element_text(size=25,hjust = 0.5), 
+        strip.text = element_text(size=25), 
+        axis.text=element_text(size=25),
+        axis.title.y = element_text(size = 25),
+        axis.title.x = element_text(size = 25)
+  )
+
+
+```
+
+
+### OCP by batch - all the samples
+
+```{r Sample Plot - OCP by batch jitter ,echo=FALSE,message=FALSE,warning=FALSE,results='hide', fig.height = 100, fig.width = 25}
+#Jitter
+ocp_batches %>%
+  group_by(Stage, Batch_num) %>% 
+  ggplot(aes(x = factor(Batch_num),  y = value,color=Stage)) +
+  geom_jitter(size=3,outlier.colour="red", outlier.shape=19,
+                outlier.size=5)+
+  facet_wrap(~var,scales = "free", ncol=2)+
+  labs(y= "Concentration", x = "Batch number")+
+  ggtitle("Batch Effect Evaluation - OCP/PBDE, by batch number") + 
+  theme(legend.key.height= unit(5, 'cm'),
+        legend.key.width= unit(5, 'cm'),
+        legend.title = element_text(size=25),
+        legend.text = element_text(size=25),
+        plot.title = element_text(size=25,hjust = 0.5), 
+        strip.text = element_text(size=25), 
+        axis.text=element_text(size=25),
+        axis.title.y = element_text(size = 25),
+        axis.title.x = element_text(size = 25)
+  )
+```
+
+
+
+### PCB : by batch - boxplot
+
+```{r Sample Plot - PCB by batch ,echo=FALSE,message=FALSE,warning=FALSE,results='hide', fig.height = 100, fig.width = 25}
+q<-notes_PCB %>% 
+  select(c("Stage","PCB-118  Results","PCB-153 Results","PCB-138 Results","PCB-156 Results","PCB-157 Results","PCB-180 Results","Tooth Powder","Batch_num")) %>% 
+  group_by("Batch_num") %>% 
+  gather(var, value,-Stage) %>% 
+  filter(str_detect(var,"Results"))
+
+q$value<-as.numeric(as.character(q$value))
+signif(q$value,digits = 8)
+
+s<-notes_PCB %>% 
+  select(c("Stage","PCB-118  Results","PCB-153 Results","PCB-138 Results","PCB-156 Results","PCB-157 Results","PCB-180 Results","Tooth Powder","Batch_num")) %>% 
+  gather(var, value,-Batch_num) %>% 
+  filter(str_detect(var,"Results")) 
+
+s$value<-as.numeric(as.character(s$value))
+signif(s$value,digits = 8)
+
+pcb_batches<-cbind(q,s)
+pcb_batches <- pcb_batches[, !duplicated(colnames(pcb_batches), fromLast = TRUE)] 
+
+pcb_batches$var <- gsub("Results", "", pcb_batches$var) #remove "Results"
+pcb_batches<-pcb_batches %>% filter(!Stage=="	PreNatal")
+
+#Boxplot
+pcb_batches %>% 
+  group_by(Stage, Batch_num) %>% 
+  ggplot(aes(x = factor(Batch_num),  y = value,fill=Stage)) +
+  geom_boxplot(lwd=1.25,outlier.colour="red", outlier.shape=19,
+                outlier.size=5)+
+  facet_wrap(~var, scales = "free",ncol=1)+
+  labs(y= "Concentration (log10)", x = "Batch number")+
+  scale_fill_brewer(palette="Set3")+
+  scale_y_continuous(trans='log10')+
+  ggtitle("Batch Effect Evaluation - PCB, by batch number") + 
+  theme(legend.key.height= unit(5, 'cm'),
+        legend.key.width= unit(5, 'cm'),
+        legend.title = element_text(size=25),
+        legend.text = element_text(size=25),
+        plot.title = element_text(size=25,hjust = 0.5), 
+        strip.text = element_text(size=25), 
+        axis.text=element_text(size=25),
+        axis.title.y = element_text(size = 25),
+        axis.title.x = element_text(size = 25)
+  )
+
+
+```
+
+### PCB by batch- all the samples
+
+```{r Sample Plot - PCB by batch jitter ,echo=FALSE,message=FALSE,warning=FALSE,results='hide', fig.height = 100, fig.width = 25}
+#Jitter
+pcb_batches %>% 
+  group_by(Stage, Batch_num) %>% 
+  ggplot(aes(x = factor(Batch_num),  y = value,color=Stage)) +
+  geom_jitter(size=3,outlier.colour="red", outlier.shape=8,
+                outlier.size=5)+
+  facet_wrap(~var, ncol=1)+
+  labs(y= "Concentration (log10)", x = "Batch number")+
+  scale_y_continuous(trans='log10')+
+  ggtitle("Batch Effect Evaluation - PCB, by batch number") + 
+  theme(legend.key.height= unit(5, 'cm'),
+        legend.key.width= unit(5, 'cm'),
+        legend.title = element_text(size=25),
+        legend.text = element_text(size=25),
+        plot.title = element_text(size=25,hjust = 0.5), 
+        strip.text = element_text(size=25), 
+        axis.text=element_text(size=25),
+        axis.title.y = element_text(size = 25),
+        axis.title.x = element_text(size = 25)
+  )
+```
+
+
+
+# Quality Control (Spiked) - Plots
+### Shewhart Chart: OCP (Spiked)
+
+
+
+
+
+
+```{r Hlines OCP, echo=FALSE, message=FALSE, warning=FALSE}
+
+add_label_line_mean <- function(y, x, text = paste("running average")) {
+  list(geom_hline(yintercept = y),
+       annotate("text", x = mean, y = y, label = text, vjust = -0.5, hjust=-0.5)
+  )
+}
+
+add_label_line_sd <- function(y, x, text = paste("Standard Deviation")) {
+  list(geom_hline(yintercept = y),
+       annotate("text", x = mean+sd, y = y, label = text, vjust = -0.5)
+  )
+}
+
+
+
+
+#HCB
+mean_hcb<-mean(OCPPBDE_QC_Spiked$`HCB Results`)
+sd_hcb<-sd(OCPPBDE_QC_Spiked$`HCB Results`)
+
+hcb_hline <- data.frame(
+  y = c(mean_hcb, mean_hcb + c(1, -1, 2, -2) * sd_hcb),
+  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
+  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+)
+
+
+
+#b-HCH
+mean_bHCH<-mean(OCPPBDE_QC_Spiked$`b-HCH Results`)
+sd_bHCH<-sd(OCPPBDE_QC_Spiked$`b-HCH Results`)
+
+bHCH_hline <- data.frame(
+  y = c(mean_bHCH, mean_bHCH + c(1, -1, 2, -2) * sd_bHCH),
+  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
+  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+)
+
+#Oxychlordane
+mean_Oxychlordane<-mean(OCPPBDE_QC_Spiked$`Oxychlordane Results`)
+sd_Oxychlordane<-sd(OCPPBDE_QC_Spiked$`Oxychlordane Results`)
+
+Oxychlordane_hline <- data.frame(
+  y = c(mean_Oxychlordane, mean_Oxychlordane + c(1, -1, 2, -2) * sd_Oxychlordane),
+  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
+  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+)
+
+
+#trans-Nonachlor
+mean_trans_Nonachlor<-mean(OCPPBDE_QC_Spiked$`trans-Nonachlor Results`)
+sd_trans_Nonachlor<-sd(OCPPBDE_QC_Spiked$`trans-Nonachlor Results`)
+
+trans_Nonachlor_hline <- data.frame(
+  y = c(mean_trans_Nonachlor, mean_trans_Nonachlor + c(1, -1, 2, -2) * sd_trans_Nonachlor),
+  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
+  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+)
+
+#pp_DDE
+mean_pp_DDE<-mean(OCPPBDE_QC_Spiked$`pp-DDE Results`)
+sd_pp_DDE<-sd(OCPPBDE_QC_Spiked$`pp-DDE Results`)
+
+pp_DDE_hline <- data.frame(
+  y = c(mean_pp_DDE, mean_pp_DDE + c(1, -1, 2, -2) * sd_pp_DDE),
+  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
+  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+)
+
+#pp-DDE-2 Results
+mean_pp_DDE_2<-mean(OCPPBDE_QC_Spiked$`pp-DDE-2 Results`)
+sd_pp_DDE_2<-sd(OCPPBDE_QC_Spiked$`pp-DDE-2 Results`)
+
+pp_DDE_2_hline <- data.frame(
+  y = c(mean_pp_DDE_2, mean_pp_DDE_2 + c(1, -1, 2, -2) * sd_pp_DDE_2),
+  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
+  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+)
+
+#BDE-28 Results
+mean_BDE_28<-mean(OCPPBDE_QC_Spiked$`BDE-28 Results`)
+sd_BDE_28<-sd(OCPPBDE_QC_Spiked$`BDE-28 Results`)
+
+BDE_28_hline <- data.frame(
+  y = c(mean_BDE_28, mean_BDE_28 + c(1, -1, 2, -2) * sd_BDE_28),
+  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
+  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+)
+
+
+#pp-DDT Results
+mean_pp_DDT<-mean(OCPPBDE_QC_Spiked$`pp-DDT Results`)
+sd_pp_DDT<-sd(OCPPBDE_QC_Spiked$`pp-DDT Results`)
+
+pp_DDT_hline <- data.frame(
+  y = c(mean_pp_DDT, mean_pp_DDT + c(1, -1, 2, -2) * sd_pp_DDT),
+  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
+  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+)
+
+#pp-DDT-2 Results
+mean_pp_DDT_2<-mean(OCPPBDE_QC_Spiked$`pp-DDT-2 Results`)
+sd_pp_DDT_2<-sd(OCPPBDE_QC_Spiked$`pp-DDT-2 Results`)
+
+pp_DDT_2_hline <- data.frame(
+  y = c(mean_pp_DDT_2, mean_pp_DDT_2 + c(1, -1, 2, -2) * sd_pp_DDT_2),
+  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
+  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+)
+
+#BDE-47 Results
+mean_BDE_47<-mean(OCPPBDE_QC_Spiked$`BDE-47 Results`)
+sd_BDE_47<-sd(OCPPBDE_QC_Spiked$`BDE-47 Results`)
+
+BDE_47_hline <- data.frame(
+  y = c(mean_BDE_47, mean_BDE_47 + c(1, -1, 2, -2) * sd_BDE_47),
+  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
+  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+)
+
+#BDE-100 Results
+mean_BDE_100<-mean(OCPPBDE_QC_Spiked$`BDE-100 Results`)
+sd_BDE_100<-sd(OCPPBDE_QC_Spiked$`BDE-100 Results`)
+
+BDE_100_hline <- data.frame(
+  y = c(mean_BDE_100, mean_BDE_100 + c(1, -1, 2, -2) * sd_BDE_100),
+  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
+  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+)
+
+#BDE-99 Results
+mean_BDE_99<-mean(OCPPBDE_QC_Spiked$`BDE-99 Results`)
+sd_BDE_99<-sd(OCPPBDE_QC_Spiked$`BDE-99 Results`)
+
+BDE_99_hline <- data.frame(
+  y = c(mean_BDE_99, mean_BDE_99 + c(1, -1, 2, -2) * sd_BDE_99),
+  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
+  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+)
+
+#BDE-153 Results
+mean_BDE_153<-mean(OCPPBDE_QC_Spiked$`BDE-153 Results`)
+sd_BDE_153<-sd(OCPPBDE_QC_Spiked$`BDE-153 Results`)
+
+BDE_153_hline <- data.frame(
+  y = c(mean_BDE_153, mean_BDE_153 + c(1, -1, 2, -2) * sd_BDE_99),
+  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
+  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+)
+```
+
+
+```{r QC cleanup Data, echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
+
+#Process control plot SPIKED
+#OCP
+OCPPBDE_QC_Spiked<-OCPPBDE_QC_Spiked %>% 
+  mutate(Batch_num=str_sub(`Batch_number`,4,5))
+
+OCPPBDE_QC_Spiked$Batch_num<-as.numeric(OCPPBDE_QC_Spiked$Batch_num)
+
+OCPPBDE_QC_Spiked<-OCPPBDE_QC_Spiked %>%
+  arrange((Batch_num))
+
+OCPPBDE_QC_Spiked_batch<-data.frame(OCPPBDE_QC_Spiked$Batch_num)
+
+#PCB
+PCB_QC_Spiked<-PCB_QC_Spiked %>% 
+  mutate(Batch_num=str_sub(`Batch_number`,4,5))
+
+PCB_QC_Spiked$Batch_num<-as.numeric(PCB_QC_Spiked$Batch_num)
+
+PCB_QC_Spiked<-PCB_QC_Spiked %>%
+  arrange((Batch_num))
+
+PCB_QC_Spiked_batch<-data.frame(PCB_QC_Spiked$Batch_num)
+
+
+#Process control plot - UNSPIKED
+#OCP
+OCPPBDE_QC_Unspike<-OCPPBDE_QC_Unspike %>% 
+  mutate(Batch_num=str_sub(`Batch_number`,4,5))
+
+OCPPBDE_QC_Unspike$Batch_num<-as.numeric(OCPPBDE_QC_Unspike$Batch_num)
+
+OCPPBDE_QC_Unspike<-OCPPBDE_QC_Unspike %>%
+  arrange((Batch_num))
+
+OCPPBDE_QC_Unspike_batch<-data.frame(OCPPBDE_QC_Unspike$Batch_num)
+
+#PCB
+PCB_QC_Unspike<-PCB_QC_Unspike %>% 
+  mutate(Batch_num=str_sub(`Batch_number`,4,5))
+
+PCB_QC_Unspike$Batch_num<-as.numeric(PCB_QC_Unspike$Batch_num)
+
+PCB_QC_Unspike<-PCB_QC_Unspike %>%
+  arrange((Batch_num))
+
+PCB_QC_Unspike_batch<-data.frame(PCB_QC_Unspike$Batch_num)
+
+
+
+#Recovery %
+#OCP
+OCPPBDE_QC_recovery_mean<-OCPPBDE_QC_recovery_mean %>% 
+  mutate(Batch_num=str_sub(`Batch_number`,4,5))
+
+OCPPBDE_QC_recovery_mean$Batch_num<-as.numeric(OCPPBDE_QC_recovery_mean$Batch_num)
+
+OCPPBDE_QC_recovery_mean<-OCPPBDE_QC_recovery_mean %>%
+  arrange((Batch_num))
+
+OCPPBDE_QC_recovery_mean_batch<-data.frame(OCPPBDE_QC_recovery_mean$Batch_num)
+OCPPBDE_QC_recovery_mean<- subset(OCPPBDE_QC_recovery_mean, select = -Batch_number)
+
+
+#PCB
+#Recovery %
+
+PCB_QC_recovery_mean<-PCB_QC_recovery_mean %>% 
+  mutate(Batch_num=str_sub(`Batch_number`,4,5))
+
+PCB_QC_recovery_mean$Batch_num<-as.numeric(PCB_QC_recovery_mean$Batch_num)
+
+PCB_QC_recovery_mean<-PCB_QC_recovery_mean %>%
+  arrange((Batch_num))
+
+PCB_QC_recovery_mean_batch<-data.frame(PCB_QC_recovery_mean$Batch_num)
+PCB_QC_recovery_mean<- subset(PCB_QC_recovery_mean, select = -Batch_number)
+```
+
+```{r}
+df111<-(OCPPBDE_QC_Spiked) %>% 
+  as.data.frame() %>% 
+  select(OCP_colnames,"Batch_num") %>% 
+  melt(id.vars = 'Batch_num')
+
+```
+
+
+```{r}
+OCP_colnames<-c("HCB Results","b-HCH Results","Oxychlordane Results","trans-Nonachlor Results","pp-DDE-2 Results", "pp-DDT Results")
+
+stats<-(OCPPBDE_QC_Spiked) %>% 
+  as.tibble() %>% 
+  select(OCP_colnames) %>%
+  summarise_all(funs(mean,sd)) %>% 
+   pivot_longer(cols = everything(), 
+               names_to = c('variable', '.value'), 
+               names_sep = '_') %>%
+  mutate(`sd+1`=(`mean` + `sd`),
+         `sd-1`= (`mean` - `sd`),
+         `sd+2`= (`mean` + 2*(`sd`)),
+         `sd-2`= (`mean` - 2*(`sd`))
+          
+         ) %>% 
+  as.data.frame(stats)
+
+```
+
+```{r HCB plot: Running average distribution, echo=FALSE,message=FALSE,warning=FALSE,  fig.height = 100, fig.width =15}
+OCPPBDE_QC_Spiked_min<-OCPPBDE_QC_Spiked %>% 
+  as.data.frame() %>% 
+  select(OCP_colnames) %>% 
+  apply(2, min)
+
+OCPPBDE_QC_Spiked_max<-OCPPBDE_QC_Spiked %>% 
+  as.data.frame() %>% 
+  select(OCP_colnames) %>% 
+  apply(2, max)
+
+
+
+max_min_spiked_ocp <- tibble(
+  variable = c(OCP_colnames),
+  y_min = c(OCPPBDE_QC_Spiked_min),
+  y_max = c(OCPPBDE_QC_Spiked_max)
+)
+
+max_min_spiked_ocp <- full_join(df111, max_min_spiked_ocp, by = "variable")
+
+avg_plot1<-ggplot(max_min_spiked_ocp, aes(x = factor(Batch_num), y = value)) + 
+  facet_wrap(~variable,ncol=1, scales="free_y")+
+    geom_blank(aes(y = y_min)) +
+    geom_blank(aes(y = y_max))+
+  geom_line(aes(color=`Batch_num`)) + 
+  geom_point(aes(color=`Batch_num`)) + 
+    geom_hline(data = stats, aes(yintercept = mean), linetype = 1, color = "blue", size=0.5)+
+    geom_hline(data = stats, aes(yintercept = `sd+1`),linetype = 5, color = "black", size=0.2)+
+    geom_hline(data = stats, aes(yintercept = `sd-1`),linetype = 5, color = "black", size=0.2)+
+    geom_hline(data = stats, aes(yintercept = `sd+2`),linetype = 4, color = "black", size=0.2)+
+    geom_hline(data = stats, aes(yintercept = `sd-2`),linetype = 4, color = "black", size=0.2)+
+  guides(color="none")+
+  theme(axis.title.y = element_text(size=10, face="bold", colour = "black"),
+        axis.text.y = element_text(size=10, face="bold", colour = "black"),
+        strip.text = element_text(face = "bold", size=10))+
+  labs(y="Concentration", x = "Batch number",linetype = c("+/- 1 SD","+/- 1 SD","+/- 1 SD", "+/- 2 SD", "Running Average"))+
+  ggtitle("QC : HCB distribution")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  scale_linetype_manual(name = "limit",
+                        values = c(1,2,3,4,5),
+                        labels = c("+/- 1 SD","+/- 1 SD","+/- 1 SD", "+/- 2 SD", "Running Average",
+                        guide = guide_legend(override.aes = list(color = c("blue", "red")))))
+
+avg_plot1  
+```
+
+
+```{r pp-DDE plot: Running average distribution, echo=FALSE,message=FALSE,warning=FALSE}
+avg_plot5<-ggplot(
+  OCPPBDE_QC_Spiked, aes(x = factor(Batch_num), y = `pp-DDE Results`, group=`Batch_num`)) + 
+  geom_line(aes(color=`Batch_number`)) + 
+  geom_point(aes(color=`Batch_number`)) + 
+  guides(color="none")+
+  geom_hline(data = pp_DDE_hline, aes(yintercept = y , linetype = `linetype`), color = "black", size=0.5)+
+  theme(axis.title.y = element_text(size=14, face="bold", colour = "black"),
+        axis.text.y = element_text(size=10, face="bold", colour = "black"),
+        strip.text = element_text(face = "bold", size=14))+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  ggtitle("QC:pp-DDE distribution")+
+  labs(y="Concentration", x = "Batch number",linetype = "Control Chart" )+
+  theme(plot.title = element_text(hjust = 0.5))+
+  scale_linetype_manual(values = c(1,2,3),
+                        labels = c("+/- 1 SD", "+/- 2 SD", "Running Average"))
+
+```
+
+
+
+```{r pp-DDT Results plot: Running average distribution, echo=FALSE,message=FALSE,warning=FALSE}
+
+avg_plot8<-ggplot(
+  OCPPBDE_QC_Spiked, aes(x = factor(Batch_num), y = `pp-DDT Results`, group=`Batch_num`)) + 
+  geom_line(aes(color=`Batch_number`)) + 
+  geom_point(aes(color=`Batch_number`)) + 
+  guides(color="none")+
+  geom_hline(data = pp_DDT_hline, aes(yintercept = y , linetype = `linetype`), color = "black", size=0.5)+
+  theme(axis.title.y = element_text(size=14, face="bold", colour = "black"),
+        axis.text.y = element_text(size=10, face="bold", colour = "black"),
+        strip.text = element_text(face = "bold", size=14))+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  ggtitle("QC: pp-DDT distribution")+
+  labs(y="Concentration", x = "Batch number",linetype = "Control Chart" )+
+  theme(plot.title = element_text(hjust = 0.5))+
+  scale_linetype_manual(values = c(1,2,3),
+                        labels = c("+/- 1 SD", "+/- 2 SD", "Running Average"))
+```
+
+
+
+### Recovery (%) Across Batches: OCP (Spiked)
+```{r QC plot - OCP spiked mean, echo=FALSE,message=FALSE,warning=FALSE, fig.height = 120, fig.width = 50 }
+
+
+OCPPBDE_QC_recovery_mean_rounded<-OCPPBDE_QC_recovery_mean %>%
+  select("HCB","Oxychlordane","Oxychlordane","trans-Nonachlor", "pp-DDE","pp-DDT","Batch_num") %>% 
+    group_by(Batch_num) %>% 
+    pivot_longer(-Batch_num) %>%
+    mutate(analytes=fct_relevel(name, "HCB Results")) %>%
+    count(Batch_num, name, wt = value) %>% 
+  mutate(Color = ifelse(n > 100, "grey", "red"))
+OCPPBDE_QC_recovery_mean_rounded$n<-signif(OCPPBDE_QC_recovery_mean_rounded$n,4) 
+
+OCPPBDE_QC_recovery_mean_rounded %>% 
+  ggplot(aes(x=n, y=name)) +
+    geom_col(aes(x=n, y=name, fill=n > 100)) +
+      scale_x_continuous(trans = "log10",
+      limits = 10^c(0, 5),
+      breaks = 10^c(0:5),
+      labels = scales::scientific(10^c(-5:0))) + 
+      facet_wrap(~Batch_num)+
+    geom_text(aes(label = paste0(n, "%")), hjust = -0.1, color = "black",size = 12)+
+    labs(y= "Analytes", x = "Recovery %", fill='Recovery %')+
+    geom_vline(aes(),xintercept = 100, linetype="dashed", 
+                color = "blue", size=1)+
+    ggtitle("Spiked average recovery % per batch - OCP") + 
+    theme(plot.title = element_text(hjust = 0.5)) +
+  theme(legend.key.height= unit(5, 'cm'),
+        legend.key.width= unit(5, 'cm'),
+        legend.title = element_text(size=25),
+        legend.text = element_text(size=25),
+        plot.title = element_text(size=70,hjust = 0.5), 
+        strip.text = element_text(size=50), 
+        axis.text=element_text(size=50),
+        axis.title.y = element_text(size = 60),
+        axis.title.x = element_text(size = 60))+
+    scale_fill_manual(values = c("#808080", "#FC2D00"),
+                    labels=c('TRUE'='>100 %','FALSE'='= or <100 %')
+                    
+    )
+
+```
+
+### Recovery (%) Across Batches: PCB (Spiked)
+  
+```{r QC plot - PCB spiked mean, echo=FALSE,message=FALSE,warning=FALSE, fig.height = 50, fig.width = 50}
+PCB_QC_recovery_mean_rounded<-PCB_QC_recovery_mean %>%
+    pivot_longer(-Batch_num) %>%
+    mutate(analytes=fct_relevel(name, "HCB Results","b-HCH Results")) %>%
+    count(Batch_num, name, wt = value) %>%
+    mutate(Color = ifelse(n > 100, "grey", "red"))
+PCB_QC_recovery_mean_rounded$n<-signif(PCB_QC_recovery_mean_rounded$n,4) 
+  
+PCB_QC_recovery_mean_rounded %>% 
+  ggplot(aes(x=n, y=name)) +
+    geom_col(aes(x=n, y=name, fill=n > 100)) +
+      scale_x_continuous(trans = "log10",
+      limits = 10^c(0, 5),
+      breaks = 10^c(0:5),
+      labels = scales::scientific(10^c(-5:0))) + 
+      facet_wrap(~Batch_num)+
+    geom_text(aes(label = paste0(n, "%")), hjust = -0.1, color = "black",size = 12)+
+    labs(y= "Analytes", x = "Recovery %", fill='Recovery %')+
+    geom_vline(aes(),xintercept = 100, linetype="dashed", 
+                color = "blue", size=1)+
+    ggtitle("Spiked average recovery % per batch - OCP/PBDE") + 
+    theme(plot.title = element_text(hjust = 0.5)) +
+  theme(legend.key.height= unit(5, 'cm'),
+        legend.key.width= unit(5, 'cm'),
+        legend.title = element_text(size=25),
+        legend.text = element_text(size=25),
+        plot.title = element_text(size=70,hjust = 0.5), 
+        strip.text = element_text(size=50), 
+        axis.text=element_text(size=50),
+        axis.title.y = element_text(size = 60),
+        axis.title.x = element_text(size = 60))+
+    scale_fill_manual(values = c("#808080", "#FC2D00"),
+                    labels=c('TRUE'='>100 %','FALSE'='= or <100 %')
+  )
+
+
+```
+
+### Recovery(%) by Analyte: OCP (Spiked)
+
+```{r OCP spiked batch cleanup, echo=FALSE,message=FALSE,warning=FALSE}
+OCPPBDE_QC_recovery<-OCPPBDE_QC_recovery %>% 
+  mutate(Batch_num=str_sub(`Batch_number`,4,5))
+
+OCPPBDE_QC_recovery$Batch_num<-as.numeric(OCPPBDE_QC_recovery$Batch_num)
+
+OCPPBDE_QC_recovery<-OCPPBDE_QC_recovery %>%
+  arrange((Batch_num))
+
+OCPPBDE_QC_recovery_batch<-data.frame(OCPPBDE_QC_recovery$Batch_num)
+```
+
+
+```{r QC plot - OCP spiked, echo=FALSE,message=FALSE,warning=FALSE}
+legend_title <- "Batches"
+
+#HCB
+ocp1<-ggplot(OCPPBDE_QC_recovery, aes(factor(Batch_num), HCB, color=OCPPBDE_QC_recovery$Batch_number)) +
+    geom_point() +
+    labs(y= "Recovery %", x = "Batch Number")+
+    geom_hline(yintercept = 100, linetype="dashed", 
+                color = "blue")+
+    scale_y_continuous(trans='log10')+
+    ggtitle("HCB concentration - Spiked QCs ") + 
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")
+
+
+#Oxychlordane
+ocp3<-ggplot(OCPPBDE_QC_recovery, aes(factor(Batch_num), `Oxychlordane`, color=OCPPBDE_QC_recovery$Batch_number)) +
+    geom_point() +
+    labs(y= "Recovery %", x = "Batch Number")+
+    scale_y_continuous(trans='log10')+
+    geom_hline(yintercept = 100, linetype="dashed", 
+                color = "blue")+
+    ggtitle("Oxychlordane concentration - Spiked QCs ") + 
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")
+
+#trans-Nonachlor
+ocp4<-ggplot(OCPPBDE_QC_recovery, aes(factor(Batch_num), `trans-Nonachlor`, color=OCPPBDE_QC_recovery$Batch_number)) +
+    geom_point() +
+    labs(y= "Recovery %", x = "Batch Number")+
+    scale_y_continuous(trans='log10')+
+    geom_hline(yintercept = 100, linetype="dashed", 
+                color = "blue")+
+    ggtitle("Trans-Nonachlor concentration - Spiked QCs ") + 
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")
+
+#pp-DDE
+ocp5<-ggplot(OCPPBDE_QC_recovery, aes(factor(Batch_num), `pp-DDE`, color=OCPPBDE_QC_recovery$Batch_number)) +
+    geom_point() +
+    labs(y= "Recovery %", x = "Batch Number")+
+    scale_y_continuous(trans='log10')+
+    geom_hline(yintercept = 100, linetype="dashed", 
+                color = "blue")+
+    ggtitle("pp-DDE concentration - Spiked QCs ") + 
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")
+
+
+#pp-DDT
+ocp7<-ggplot(OCPPBDE_QC_recovery, aes(factor(Batch_num), `pp-DDT`, color=OCPPBDE_QC_recovery$Batch_number)) +
+    geom_point() +
+    labs(y= "Recovery %", x = "Batch Number")+
+    scale_y_continuous(trans='log10')+
+    geom_hline(yintercept = 100, linetype="dashed", 
+                color = "blue")+
+    ggtitle("pp-DDT concentration - Spiked QCs ") + 
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")
+
+
+
+grid.arrange(ocp1, ocp3, ncol=2)
+grid.arrange(ocp4, ocp5, ncol=2)
+grid.arrange(ocp7, ncol=1)
+
+
+```
+
+```{r PCB spiked batch cleanup, echo=FALSE,message=FALSE,warning=FALSE}
+PCB_QC_recovery<-PCB_QC_recovery %>% 
+  mutate(Batch_num=str_sub(`Batch_number`,4,5))
+
+PCB_QC_recovery$Batch_num<-as.numeric(PCB_QC_recovery$Batch_num)
+
+PCB_QC_recovery<-PCB_QC_recovery %>%
+  arrange((Batch_num))
+
+PCB_QC_recovery_batch<-data.frame(PCB_QC_recovery$Batch_num)
+```
+
+### Recovery(%) by Analyte : PCB (Spiked)
+```{r QC plot - PCB spiked, echo=FALSE,message=FALSE,warning=FALSE}
+pcb1<-ggplot(PCB_QC_recovery, aes(factor(Batch_num), `PCB-118 `, color=PCB_QC_recovery$Batch_number)) +
+    geom_point() +
+    labs(y= "Recovery % [log10]", x = "Batch Number")+
+    geom_hline(yintercept = 100, linetype="dashed", 
+                color = "blue")+
+    scale_y_continuous(trans='log10')+
+    ggtitle("PCB-118 concentration - Spiked QCs ") + 
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")
+
+pcb2<-ggplot(PCB_QC_recovery, aes(factor(Batch_num), `PCB-153`, color=PCB_QC_recovery$Batch_number)) +
+    geom_point() +
+    labs(y= "Recovery % [log10]", x = "Batch Number")+
+    scale_y_continuous(trans='log10')+
+    geom_hline(yintercept = 100, linetype="dashed", 
+                color = "blue")+
+    ggtitle("PCB-153 concentration - Spiked QCs ") + 
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")
+
+pcb3<-ggplot(PCB_QC_recovery, aes(factor(Batch_num), `PCB-138`, color=PCB_QC_recovery$Batch_number)) +
+    geom_point() +
+    labs(y= "Recovery % [log10]", x = "Batch Number")+
+    scale_y_continuous(trans='log10')+
+    geom_hline(yintercept = 100, linetype="dashed", 
+                color = "blue")+
+    ggtitle("PCB-138 concentration - Spiked QCs ") + 
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")
+
+pcb4<-ggplot(PCB_QC_recovery, aes(factor(Batch_num), `PCB-156`, color=PCB_QC_recovery$Batch_number)) +
+    geom_point() +
+    labs(y= "Recovery % [log10]", x = "Batch Number")+
+    scale_y_continuous(trans='log10')+
+    geom_hline(yintercept = 100, linetype="dashed", 
+                color = "blue")+
+    ggtitle("PCB-156 concentration - Spiked QCs ") + 
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")
+
+pcb5<-ggplot(PCB_QC_recovery, aes(factor(Batch_num), `PCB-157`, color=PCB_QC_recovery$Batch_number)) +
+    geom_point() +
+    labs(y= "Recovery % [log10]", x = "Batch Number")+
+    scale_y_continuous(trans='log10')+
+    geom_hline(yintercept = 100, linetype="dashed", 
+                color = "blue")+
+    ggtitle("PCB-157 concentration - Spiked QCs ") + 
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")
+
+pcb6<-ggplot(PCB_QC_recovery, aes(factor(Batch_num), `PCB-180`, color=PCB_QC_recovery$Batch_number)) +
+    geom_point() +
+    labs(y= "Recovery % [log10]", x = "Batch Number")+
+    scale_y_continuous(trans='log10')+
+    geom_hline(yintercept = 100, linetype="dashed", 
+                color = "blue")+
+    ggtitle("PCB-180 concentration - Spiked QCs ") + 
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")
+
+pcb7<-ggplot(PCB_QC_recovery, aes(factor(Batch_num), `PCB-170`, color=PCB_QC_recovery$Batch_number)) +
+    geom_point() +
+    labs(y= "Recovery % [log10]", x = "Batch Number")+
+    geom_hline(yintercept = 100, linetype="dashed", 
+                color = "blue")+
+  scale_y_continuous(trans='log10')+
+    ggtitle("PCB-170 concentration - Spiked QCs ") + 
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")
+
+grid.arrange(pcb1, pcb2, ncol=2)
+grid.arrange(pcb3, pcb4, ncol=2)
+grid.arrange(pcb5, pcb6, ncol=2)
+grid.arrange(pcb7, ncol=2)
+```
+
+
+
+# Quality Control (Unspiked) - Plots
+### Concentration across batches: OCP (Unspiked)
+OCP/PBDE  
+```{r ALL unspiked QC OCP plots, echo=FALSE,message=FALSE,warning=FALSE }
+
+OCPPBDE_QC_unspike_mean %>%
+    pivot_longer(-Batch_number) %>%
+    mutate(analytes=fct_relevel(name, "HCB Results","b-HCH Results")) %>%
+    count(Batch_number, name, wt = value) %>%
+    ggplot(aes(n, name)) +
+    geom_col() +
+    facet_wrap(~Batch_number)+
+    labs(y= "Analytes", x = "Concentration")+
+    ggtitle("Untargetted Pool average concentration - OCP/PBDE") + 
+    theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+
+```{r Hlines OCP Unspiked, echo=FALSE, message=FALSE, warning=FALSE}
+
+OCPPBDE_QC_Unspike %>% 
+  select(OCP_colnames) %>% 
+  summarise_each(funs(mean, sd))
+
+
+#HCB
+mean_hcb<-mean(OCPPBDE_QC_Unspike$`HCB Results`)
+sd_hcb<-sd(OCPPBDE_QC_Unspike$`HCB Results`)
+
+hcb_hline <- data.frame(
+  y = c(mean_hcb, mean_hcb + c(1, -1, 2, -2) * sd_hcb),
+  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
+  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+)
+
+
+#Oxychlordane
+mean_Oxychlordane<-mean(OCPPBDE_QC_Unspike$`Oxychlordane Results`)
+sd_Oxychlordane<-sd(OCPPBDE_QC_Unspike$`Oxychlordane Results`)
+
+Oxychlordane_hline <- data.frame(
+  y = c(mean_Oxychlordane, mean_Oxychlordane + c(1, -1, 2, -2) * sd_Oxychlordane),
+  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
+  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+)
+
+
+#trans-Nonachlor
+mean_trans_Nonachlor<-mean(OCPPBDE_QC_Unspike$`trans-Nonachlor Results`)
+sd_trans_Nonachlor<-sd(OCPPBDE_QC_Unspike$`trans-Nonachlor Results`)
+
+trans_Nonachlor_hline <- data.frame(
+  y = c(mean_trans_Nonachlor, mean_trans_Nonachlor + c(1, -1, 2, -2) * sd_trans_Nonachlor),
+  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
+  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+)
+
+#pp-DDE-2 Results
+mean_pp_DDE_2<-mean(OCPPBDE_QC_Unspike$`pp-DDE-2 Results`)
+sd_pp_DDE_2<-sd(OCPPBDE_QC_Unspike$`pp-DDE-2 Results`)
+
+pp_DDE_2_hline <- data.frame(
+  y = c(mean_pp_DDE_2, mean_pp_DDE_2 + c(1, -1, 2, -2) * sd_pp_DDE_2),
+  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
+  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+)
+
+
+
+#pp-DDT Results
+mean_pp_DDT<-mean(OCPPBDE_QC_Unspike$`pp-DDT Results`)
+sd_pp_DDT<-sd(OCPPBDE_QC_Unspike$`pp-DDT Results`)
+
+pp_DDT_hline <- data.frame(
+  y = c(mean_pp_DDT, mean_pp_DDT + c(1, -1, 2, -2) * sd_pp_DDT),
+  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
+  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+)
+
+```
+
+
+
+```{r UNSPIKED OCP: HCB plot - Running average distribution, echo=FALSE,message=FALSE,warning=FALSE}
+
+avg_plot11<-ggplot(OCPPBDE_QC_Unspike, aes(x = factor(Batch_num), y = `HCB Results`, group=`Batch_num`)) + 
+  geom_line(aes(color=`Batch_number`)) + 
+  geom_point(aes(color=`Batch_number`)) + 
+  guides(color="none")+
+  geom_hline(data = hcb_hline, aes(yintercept = y , linetype = `linetype`), color = "black", size=0.5)+
+   theme(axis.title.y = element_text(size=10, face="bold", colour = "black"),
+        axis.text.y = element_text(size=10, face="bold", colour = "black"),
+        strip.text = element_text(face = "bold", size=10))+
+  labs(y="Concentration", x = "Batch number",linetype = "Control Chart" )+
+  ggtitle("Unspiked QC : HCB distribution")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  scale_linetype_manual(values = c(1,2,3),
+                        labels = c("+/- 1 SD", "+/- 2 SD", "Running Average"))
+  
+```
+
+```{r UNSPIKED OCP: Oxychlordane plot - Running average distribution, echo=FALSE,message=FALSE,warning=FALSE}
+
+avg_plot22<-ggplot(OCPPBDE_QC_Unspike, aes(x = factor(Batch_num), y = `Oxychlordane Results`, group=`Batch_num`)) + 
+  geom_line(aes(color=`Batch_number`)) + 
+  geom_point(aes(color=`Batch_number`)) + 
+  guides(color="none")+
+  geom_hline(data = Oxychlordane_hline, aes(yintercept = y , linetype = `linetype`), color = "black", size=0.5)+
+   theme(axis.title.y = element_text(size=10, face="bold", colour = "black"),
+        axis.text.y = element_text(size=10, face="bold", colour = "black"),
+        strip.text = element_text(face = "bold", size=10))+
+  labs(y="Concentration", x = "Batch number",linetype = "Control Chart" )+
+  ggtitle("Unspiked QC : Oxychlordane distribution")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  scale_linetype_manual(values = c(1,2,3),
+                        labels = c("+/- 1 SD", "+/- 2 SD", "Running Average"))
+  
+```
+
+```{r UNSPIKED OCP: trans-Nonachlor plot - Running average distribution, echo=FALSE,message=FALSE,warning=FALSE}
+
+avg_plot33<-ggplot(OCPPBDE_QC_Unspike, aes(x = factor(Batch_num), y = `trans-Nonachlor Results`, group=`Batch_num`)) + 
+  geom_line(aes(color=`Batch_number`)) + 
+  geom_point(aes(color=`Batch_number`)) + 
+  guides(color="none")+
+  geom_hline(data = trans_Nonachlor_hline, aes(yintercept = y , linetype = `linetype`), color = "black", size=0.5)+
+   theme(axis.title.y = element_text(size=10, face="bold", colour = "black"),
+        axis.text.y = element_text(size=10, face="bold", colour = "black"),
+        strip.text = element_text(face = "bold", size=10))+
+  labs(y="Concentration", x = "Batch number",linetype = "Control Chart" )+
+  ggtitle("Unspiked QC : trans-Nonachlor distribution")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  scale_linetype_manual(values = c(1,2,3),
+                        labels = c("+/- 1 SD", "+/- 2 SD", "Running Average"))
+  
+```
+
+```{r UNSPIKED OCP: pp-DDE-2 Results plot - Running average distribution, echo=FALSE,message=FALSE,warning=FALSE}
+
+avg_plot44<-ggplot(OCPPBDE_QC_Unspike, aes(x = factor(Batch_num), y = `pp-DDE-2 Results`, group=`Batch_num`)) + 
+  geom_line(aes(color=`Batch_number`)) + 
+  geom_point(aes(color=`Batch_number`)) + 
+  guides(color="none")+
+  geom_hline(data = pp_DDE_2_hline, aes(yintercept = y , linetype = `linetype`), color = "black", size=0.5)+
+   theme(axis.title.y = element_text(size=10, face="bold", colour = "black"),
+        axis.text.y = element_text(size=10, face="bold", colour = "black"),
+        strip.text = element_text(face = "bold", size=10))+
+  labs(y="Concentration", x = "Batch number",linetype = "Control Chart" )+
+  ggtitle("Unspiked QC : pp-DDE-2 distribution")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  scale_linetype_manual(values = c(1,2,3),
+                        labels = c("+/- 1 SD", "+/- 2 SD", "Running Average"))
+  
+```
+
+
+```{r UNSPIKED OCP: pp-DDT plot - Running average distribution, echo=FALSE,message=FALSE,warning=FALSE}
+
+avg_plot55<-ggplot(OCPPBDE_QC_Unspike, aes(x = factor(Batch_num), y = `pp-DDT Results`, group=`Batch_num`)) + 
+  geom_line(aes(color=`Batch_number`)) + 
+  geom_point(aes(color=`Batch_number`)) + 
+  guides(color="none")+
+  geom_hline(data = pp_DDT_hline, aes(yintercept = y , linetype = `linetype`), color = "black", size=0.5)+
+   theme(axis.title.y = element_text(size=10, face="bold", colour = "black"),
+        axis.text.y = element_text(size=10, face="bold", colour = "black"),
+        strip.text = element_text(face = "bold", size=10))+
+  labs(y="Concentration", x = "Batch number",linetype = "Control Chart" )+
+  ggtitle("Unspiked QC : pp-DDT distribution")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  scale_linetype_manual(values = c(1,2,3),
+                        labels = c("+/- 1 SD", "+/- 2 SD", "Running Average"))
+  
+```
+
+### Shewhart Chart: OCP (Unspiked)
+```{r Display Unspiked OCP Shewhart Chart, echo=FALSE,message=FALSE,warning=FALSE}
+avg_plot11 
+avg_plot22
+avg_plot33
+avg_plot44
+avg_plot55
+```
+
+
+
+
+
+### Concentration across batches: PCB (Unspiked)
+```{r QC plot - unspiked PCB, echo=FALSE,message=FALSE,warning=FALSE }
+
+PCB_QC_unspike_mean %>%
+    pivot_longer(-Batch_number) %>%
+    mutate(analytes=fct_relevel(name, "HCB Results","b-HCH Results")) %>%
+    count(Batch_number, name, wt = value) %>%
+    ggplot(aes(n, name)) +
+    geom_col() +
+    facet_wrap(~Batch_number)+
+    labs(y= "Analytes", x = "Concentration")+
+    ggtitle("Untargetted Pool average concentration - PCB") + 
+    theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+
+```{r Hlines PCB Unspiked, echo=FALSE, message=FALSE, warning=FALSE}
+#PCB-118  Results
+mean_pcb_118<-mean(PCB_QC_Unspike$`PCB-118  Results`)
+sd_pcb_118<-sd(PCB_QC_Unspike$`PCB-118  Results`)
+
+pcb_118_hline <- data.frame(
+  y = c(mean_pcb_118, mean_pcb_118 + c(1, -1, 2, -2) * sd_pcb_118),
+  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
+  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+)
+
+#PCB-153 Results
+mean_pcb_153<-mean(PCB_QC_Unspike$`PCB-153 Results`)
+sd_pcb_153<-sd(PCB_QC_Unspike$`PCB-153 Results`)
+
+pcb_153_hline <- data.frame(
+  y = c(mean_pcb_153, mean_pcb_153 + c(1, -1, 2, -2) * sd_pcb_153),
+  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
+  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+)
+
+
+#PCB-138 Results
+mean_pcb_138<-mean(PCB_QC_Unspike$`PCB-138 Results`)
+sd_pcb_138<-sd(PCB_QC_Unspike$`PCB-138 Results`)
+
+pcb_138_hline <- data.frame(
+  y = c(mean_pcb_138, mean_pcb_138 + c(1, -1, 2, -2) * sd_pcb_138),
+  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
+  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+)
+
+
+#PCB-156 Results
+mean_pcb_156<-mean(PCB_QC_Unspike$`PCB-156 Results`)
+sd_pcb_156<-sd(PCB_QC_Unspike$`PCB-156 Results`)
+
+pcb_156_hline <- data.frame(
+  y = c(mean_pcb_156, mean_pcb_156 + c(1, -1, 2, -2) * sd_pcb_156),
+  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
+  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+)
+
+
+#PCB-157 Results
+mean_pcb_157<-mean(PCB_QC_Unspike$`PCB-157 Results`)
+sd_pcb_157<-sd(PCB_QC_Unspike$`PCB-157 Results`)
+
+pcb_157_hline <- data.frame(
+  y = c(mean_pcb_157, mean_pcb_157 + c(1, -1, 2, -2) * sd_pcb_157),
+  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
+  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+)
+
+
+#PCB-180 Results
+mean_pcb_180<-mean(PCB_QC_Unspike$`PCB-180 Results`)
+sd_pcb_180<-sd(PCB_QC_Unspike$`PCB-180 Results`)
+
+pcb_180_hline <- data.frame(
+  y = c(mean_pcb_180, mean_pcb_180 + c(1, -1, 2, -2) * sd_pcb_180),
+  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
+  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+)
+
+ 
+#PCB-170 Results
+mean_pcb_170<-mean(PCB_QC_Unspike$`PCB-170 Results`)
+sd_pcb_170<-sd(PCB_QC_Unspike$`PCB-170 Results`)
+
+pcb_170_hline <- data.frame(
+  y = c(mean_pcb_170, mean_pcb_170 + c(1, -1, 2, -2) * sd_pcb_170),
+  Descriptive_Statistics = c("Running Average", "+1*SD ", "-1*SD ", "+2*SD", "-2*SD"),
+  linetype = c("solid", "dashed", "dashed", "dotted", "dotted")
+)
+```
+
+
+### Shewhart Chart: PCB (Unspiked)
+```{r UNSPIKED PCB: PCB-118 plot - Running average distribution, echo=FALSE,message=FALSE,warning=FALSE}
+
+avg_plot111<-ggplot(PCB_QC_Unspike, aes(x = factor(Batch_num), y = `PCB-118  Results`, group=`Batch_num`)) + 
+  geom_line(aes(color=`Batch_number`)) + 
+  geom_point(aes(color=`Batch_number`)) + 
+  guides(color="none")+
+  geom_hline(data = pcb_118_hline, aes(yintercept = y , linetype = `linetype`), color = "black", size=0.5)+
+   theme(axis.title.y = element_text(size=10, face="bold", colour = "black"),
+        axis.text.y = element_text(size=10, face="bold", colour = "black"),
+        strip.text = element_text(face = "bold", size=10))+
+  labs(y="Concentration", x = "Batch number",linetype = "Control Chart" )+
+  ggtitle("Unspiked QC : PCB-118 distribution")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  scale_linetype_manual(values = c(1,2,3),
+                        labels = c("+/- 1 SD", "+/- 2 SD", "Running Average"))
+  
+```
+
+```{r UNSPIKED PCB: PCB-153 plot - Running average distribution, echo=FALSE,message=FALSE,warning=FALSE}
+
+avg_plot222<-ggplot(PCB_QC_Unspike, aes(x = factor(Batch_num), y = `PCB-153 Results`, group=`Batch_num`)) + 
+  geom_line(aes(color=`Batch_number`)) + 
+  geom_point(aes(color=`Batch_number`)) + 
+  guides(color="none")+
+  geom_hline(data = pcb_153_hline, aes(yintercept = y , linetype = `linetype`), color = "black", size=0.5)+
+   theme(axis.title.y = element_text(size=10, face="bold", colour = "black"),
+        axis.text.y = element_text(size=10, face="bold", colour = "black"),
+        strip.text = element_text(face = "bold", size=10))+
+  labs(y="Concentration", x = "Batch number",linetype = "Control Chart" )+
+  ggtitle("Unspiked QC : PCB-153 distribution")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  scale_linetype_manual(values = c(1,2,3),
+                        labels = c("+/- 1 SD", "+/- 2 SD", "Running Average"))
+  
+```
+
+```{r UNSPIKED PCB: PCB-138 plot - Running average distribution, echo=FALSE,message=FALSE,warning=FALSE}
+
+avg_plot333<-ggplot(PCB_QC_Unspike, aes(x = factor(Batch_num), y = `PCB-138 Results`, group=`Batch_num`)) + 
+  geom_line(aes(color=`Batch_number`)) + 
+  geom_point(aes(color=`Batch_number`)) + 
+  guides(color="none")+
+  geom_hline(data = pcb_138_hline, aes(yintercept = y , linetype = `linetype`), color = "black", size=0.5)+
+   theme(axis.title.y = element_text(size=10, face="bold", colour = "black"),
+        axis.text.y = element_text(size=10, face="bold", colour = "black"),
+        strip.text = element_text(face = "bold", size=10))+
+  labs(y="Concentration", x = "Batch number",linetype = "Control Chart" )+
+  ggtitle("Unspiked QC : PCB-138 distribution")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  scale_linetype_manual(values = c(1,2,3),
+                        labels = c("+/- 1 SD", "+/- 2 SD", "Running Average"))
+  
+```
+
+```{r UNSPIKED PCB: PCB-156 Results plot - Running average distribution, echo=FALSE,message=FALSE,warning=FALSE}
+
+avg_plot444<-ggplot(PCB_QC_Unspike, aes(x = factor(Batch_num), y = `PCB-156 Results`, group=`Batch_num`)) + 
+  geom_line(aes(color=`Batch_number`)) + 
+  geom_point(aes(color=`Batch_number`)) + 
+  guides(color="none")+
+  geom_hline(data = pcb_156_hline, aes(yintercept = y , linetype = `linetype`), color = "black", size=0.5)+
+   theme(axis.title.y = element_text(size=10, face="bold", colour = "black"),
+        axis.text.y = element_text(size=10, face="bold", colour = "black"),
+        strip.text = element_text(face = "bold", size=10))+
+  labs(y="Concentration", x = "Batch number",linetype = "Control Chart" )+
+  ggtitle("Unspiked QC : PCB-156 distribution")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  scale_linetype_manual(values = c(1,2,3),
+                        labels = c("+/- 1 SD", "+/- 2 SD", "Running Average"))
+  
+```
+
+```{r UNSPIKED PCB: PCB-157 Results plot - Running average distribution, echo=FALSE,message=FALSE,warning=FALSE}
+
+avg_plot555<-ggplot(PCB_QC_Unspike, aes(x = factor(Batch_num), y = `PCB-157 Results`, group=`Batch_num`)) + 
+  geom_line(aes(color=`Batch_number`)) + 
+  geom_point(aes(color=`Batch_number`)) + 
+  guides(color="none")+
+  geom_hline(data = pcb_157_hline, aes(yintercept = y , linetype = `linetype`), color = "black", size=0.5)+
+   theme(axis.title.y = element_text(size=10, face="bold", colour = "black"),
+        axis.text.y = element_text(size=10, face="bold", colour = "black"),
+        strip.text = element_text(face = "bold", size=10))+
+  labs(y="Concentration", x = "Batch number",linetype = "Control Chart" )+
+  ggtitle("Unspiked QC : PCB-157 distribution")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  scale_linetype_manual(values = c(1,2,3),
+                        labels = c("+/- 1 SD", "+/- 2 SD", "Running Average"))
+  
+```
+
+```{r UNSPIKED PCB: PCB-180 Results plot - Running average distribution, echo=FALSE,message=FALSE,warning=FALSE}
+
+avg_plot666<-ggplot(PCB_QC_Unspike, aes(x = factor(Batch_num), y = `PCB-180 Results`, group=`Batch_num`)) + 
+  geom_line(aes(color=`Batch_number`)) + 
+  geom_point(aes(color=`Batch_number`)) + 
+  guides(color="none")+
+  geom_hline(data = pcb_180_hline, aes(yintercept = y , linetype = `linetype`), color = "black", size=0.5)+
+   theme(axis.title.y = element_text(size=10, face="bold", colour = "black"),
+        axis.text.y = element_text(size=10, face="bold", colour = "black"),
+        strip.text = element_text(face = "bold", size=10))+
+  labs(y="Concentration", x = "Batch number",linetype = "Control Chart" )+
+  ggtitle("Unspiked QC : PCB-180 distribution")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  scale_linetype_manual(values = c(1,2,3),
+                        labels = c("+/- 1 SD", "+/- 2 SD", "Running Average"))
+  
+```
+ 
+```{r UNSPIKED PCB: PCB-170 Results plot - Running average distribution, echo=FALSE,message=FALSE,warning=FALSE}
+
+avg_plot777<-ggplot(PCB_QC_Unspike, aes(x = factor(Batch_num), y = `PCB-170 Results`, group=`Batch_num`)) + 
+  geom_line(aes(color=`Batch_number`)) + 
+  geom_point(aes(color=`Batch_number`)) + 
+  guides(color="none")+
+  geom_hline(data = pcb_170_hline, aes(yintercept = y , linetype = `linetype`), color = "black", size=0.5)+
+   theme(axis.title.y = element_text(size=10, face="bold", colour = "black"),
+        axis.text.y = element_text(size=10, face="bold", colour = "black"),
+        strip.text = element_text(face = "bold", size=10))+
+  labs(y="Concentration", x = "Batch number",linetype = "Control Chart" )+
+  ggtitle("Unspiked QC : PCB-170 distribution")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  scale_linetype_manual(values = c(1,2,3),
+                        labels = c("+/- 1 SD", "+/- 2 SD", "Running Average"))
+  
+```
+
+```{r Display - Running average distribution, echo=FALSE,message=FALSE,warning=FALSE}
+avg_plot111
+avg_plot222
+avg_plot333
+avg_plot444
+avg_plot555
+avg_plot666
+avg_plot777
+
+```
+
+
+# Descriptive Statistics
+```{r Remove Prenatal samples, echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
+#OCP/PBDEs
+notes_OCPPBDE<-notes_OCPPBDE %>% filter(!Stage=="	PreNatal")
+notes_OCPPBDE<-notes_OCPPBDE %>% filter(!Stage=="PreNatal")
+notes_OCPPBDE<-notes_OCPPBDE %>% filter(!Stage=="PreNatal ")
+
+#PCBs
+notes_PCB<-notes_PCB %>% filter(!Stage=="	PreNatal")
+notes_PCB<-notes_PCB %>% filter(!Stage=="PreNatal")
+notes_PCB<-notes_PCB %>% filter(!Stage=="PreNatal ")
+
+```
+
+
+
+```{r Descriptive Statistics OCP,echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
+#Median
+T_2_OCP_stats_median <- notes_OCPPBDE %>%
+  group_by(Stage) %>% 
+  summarise_at(vars('HCB Results', 'b-HCH Results','Oxychlordane Results','trans-Nonachlor Results', 'pp-DDE-2 Results', 'pp-DDE Results', 'BDE-28 Results', 'pp-DDT Results','pp-DDT-2 Results','BDE-47 Results','BDE-100 Results','BDE-99 Results','BDE-153 Results'),
+               funs(OCP=median)) %>% 
+    rename_with(~ str_remove(., " Results_OCP"), everything()) %>%
+    pivot_longer(-Stage) %>%
+    mutate(analytes=fct_relevel(name, "HCB Results","b-HCH Results")) %>%
+    count(Stage, name, wt = value)
+    colnames(T_2_OCP_stats_median)[colnames(T_2_OCP_stats_median) == "n"] ="Median"
+    
+    
+ocp_2t_median<-T_2_OCP_stats_median %>% filter(Stage=="2T")
+ocp_2t_median<- subset(ocp_2t_median, select = -c(Stage))
+
+ocp_3t_median<-T_2_OCP_stats_median %>% filter(Stage=="3T")
+ocp_3t_median<- subset(ocp_3t_median, select = -c(Stage,name))
+
+ocp_post_median<-T_2_OCP_stats_median %>% filter(Stage=="Post")
+ocp_post_median<- subset(ocp_post_median, select = -c(Stage,name))
+
+#Mean
+T_2_OCP_stats_mean <- notes_OCPPBDE %>% 
+  group_by(Stage) %>% 
+  summarise_at(vars('HCB Results', 'b-HCH Results','Oxychlordane Results','trans-Nonachlor Results', 'pp-DDE-2 Results', 'pp-DDE Results', 'BDE-28 Results', 'pp-DDT Results','pp-DDT-2 Results','BDE-47 Results','BDE-100 Results','BDE-99 Results','BDE-153 Results'),
+               funs(OCP=mean)) %>%
+    rename_with(~ str_remove(., " Results_OCP"), everything()) %>% 
+    pivot_longer(-Stage) %>%
+    mutate(analytes=fct_relevel(name, "HCB Results","b-HCH Results")) %>%
+    count(Stage, name, wt = value)
+    colnames(T_2_OCP_stats_mean)[colnames(T_2_OCP_stats_mean) == "n"] ="Mean"
+
+ocp_2t_mean<-T_2_OCP_stats_mean %>% filter(Stage=="2T")
+ocp_2t_mean<- subset(ocp_2t_mean, select = -c(Stage,name))
+
+ocp_3t_mean<-T_2_OCP_stats_mean %>% filter(Stage=="3T")
+ocp_3t_mean<- subset(ocp_3t_mean, select = -c(Stage,name))
+
+ocp_post_mean<-T_2_OCP_stats_mean %>% filter(Stage=="Post")
+ocp_post_mean<- subset(ocp_post_mean, select = -c(Stage,name))
+
+
+#SD
+T_2_OCP_stats_sd <- notes_OCPPBDE %>% 
+  group_by(Stage) %>% 
+  summarise_at(vars('HCB Results', 'b-HCH Results','Oxychlordane Results','trans-Nonachlor Results', 'pp-DDE-2 Results', 'pp-DDE Results', 'BDE-28 Results', 'pp-DDT Results','pp-DDT-2 Results','BDE-47 Results','BDE-100 Results','BDE-99 Results','BDE-153 Results'),
+               funs(OCP=sd)) %>% 
+    rename_with(~ str_remove(., " Results"), everything()) %>% 
+    pivot_longer(-Stage) %>%
+    mutate(analytes=fct_relevel(name, "HCB Results","b-HCH Results")) %>%
+    count(Stage, name, wt = value)
+    colnames(T_2_OCP_stats_sd)[colnames(T_2_OCP_stats_sd) == "n"] ="SD"
+
+ocp_2t_sd<-T_2_OCP_stats_sd %>% filter(Stage=="2T")
+ocp_2t_sd<- subset(ocp_2t_sd, select = -c(Stage,name))
+
+ocp_3t_sd<-T_2_OCP_stats_sd %>% filter(Stage=="3T")
+ocp_3t_sd<- subset(ocp_3t_sd, select = -c(Stage,name))
+
+ocp_post_sd<-T_2_OCP_stats_sd %>% filter(Stage=="Post")
+ocp_post_sd<- subset(ocp_post_sd, select = -c(Stage,name))
+
+
+#IQR
+OCPPBDE_stats_IQR <- notes_OCPPBDE %>% 
+  select(c('HCB Results','Oxychlordane Results','trans-Nonachlor Results', 'pp-DDE Results', 'pp-DDT Results')) %>% 
+    replace(is.na(.), 0) %>% 
+    rename_with(~ str_remove(., " Results"), everything())
+
+IQR_OCPPBDE_IQR_2T<-OCPPBDE_stats_IQR %>% filter(Stage=="2T")
+IQR_OCPPBDE_IQR_2T<- subset(IQR_OCPPBDE_IQR_2T, select = -c(Stage))
+
+IQR_OCPPBDE_IQR_3T<-OCPPBDE_stats_IQR %>% filter(Stage=="3T")
+IQR_OCPPBDE_IQR_3T<- subset(IQR_OCPPBDE_IQR_3T, select = -c(Stage))
+
+IQR_OCPPBDE_IQR_Post<-OCPPBDE_stats_IQR %>% filter(Stage=="Post")
+IQR_OCPPBDE_IQR_Post<- subset(IQR_OCPPBDE_IQR_Post, select = -c(Stage))
+
+
+IQR_OCPPBDE_2T<-as.data.frame(lapply(IQR_OCPPBDE_IQR_2T,quantile,probs=seq(0, 1, 1/4)))
+IQR_OCPPBDE_3T<-as.data.frame(lapply(IQR_OCPPBDE_IQR_3T,quantile,probs=seq(0, 1, 1/4)))
+IQR_OCPPBDE_Post<-as.data.frame(lapply(IQR_OCPPBDE_IQR_Post,quantile,probs=seq(0, 1, 1/4)))
+
+
+IQR_OCPPBDE=cbind(IQR_OCPPBDE_2T,IQR_OCPPBDE_3T,IQR_OCPPBDE_Post)
+
+IQR_OCPPBDE<-signif(IQR_OCPPBDE,2) 
+
+
+
+
+stats_OCP=cbind(ocp_2t_median,ocp_2t_mean,ocp_2t_sd, ocp_3t_median,ocp_3t_mean,ocp_3t_sd, ocp_post_median,ocp_post_mean,ocp_post_sd)
+
+
+is.num <- sapply(stats_OCP, is.numeric)
+stats_OCP[is.num] <- lapply(stats_OCP[is.num], round, 3)
+```
+
+```{r Descriptive Statistics PCB,echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
+#Median
+T_2_PCB_stats_median <- notes_PCB %>% 
+  group_by(Stage) %>% 
+  summarise_at(vars('PCB-118  Results', 'PCB-153 Results','PCB-138 Results','PCB-156 Results', 'PCB-157 Results', 'PCB-180 Results', 'PCB-170 Results'),funs(PCB=median)) %>% 
+    rename_with(~ str_remove(., " Results_PCB"), everything()) %>% 
+    pivot_longer(-Stage) %>%
+    mutate(analytes=fct_relevel(name, "HCB Results","b-HCH Results")) %>%
+    count(Stage, name, wt = value)
+    colnames(T_2_PCB_stats_median)[colnames(T_2_PCB_stats_median) == "n"] ="Median"
+    
+
+PCB_2t_median<-T_2_PCB_stats_median %>% filter(Stage=="2T")
+PCB_2t_median<- subset(PCB_2t_median, select = -c(Stage,name))
+
+PCB_3t_median<-T_2_PCB_stats_median %>% filter(Stage=="3T")
+PCB_3t_median<- subset(PCB_3t_median, select = -c(Stage,name))
+
+PCB_post_median<-T_2_PCB_stats_median %>% filter(Stage=="Post")
+PCB_post_median<- subset(PCB_post_median, select = -c(Stage,name))
+
+
+
+#Mean
+T_2_PCB_stats_mean <- notes_PCB %>% 
+  group_by(Stage) %>% 
+  summarise_at(vars('PCB-118  Results', 'PCB-153 Results','PCB-138 Results','PCB-156 Results', 'PCB-157 Results', 'PCB-180 Results', 'PCB-170 Results'),funs(PCB=mean)) %>% 
+    rename_with(~ str_remove(., " Results_PCB"), everything()) %>% 
+    pivot_longer(-Stage) %>%
+    mutate(analytes=fct_relevel(name, "HCB Results","b-HCH Results")) %>%
+    count(Stage, name, wt = value)
+    colnames(T_2_PCB_stats_mean)[colnames(T_2_PCB_stats_mean) == "n"] ="Mean"
+    
+
+PCB_2t_mean<-T_2_PCB_stats_mean %>% filter(Stage=="2T")
+PCB_2t_mean<- subset(PCB_2t_mean, select = -c(Stage,name))
+
+PCB_3t_mean<-T_2_PCB_stats_mean %>% filter(Stage=="3T")
+PCB_3t_mean<- subset(PCB_3t_mean, select = -c(Stage,name))
+
+PCB_post_mean<-T_2_PCB_stats_mean %>% filter(Stage=="Post")
+PCB_post_mean<- subset(PCB_post_mean, select = -c(Stage,name))
+
+
+#SD
+T_2_PCB_stats_sd <- notes_PCB %>% 
+  group_by(Stage) %>% 
+  summarise_at(vars('PCB-118  Results', 'PCB-153 Results','PCB-138 Results','PCB-156 Results', 'PCB-157 Results', 'PCB-180 Results', 'PCB-170 Results'),funs(PCB=median)) %>% 
+    rename_with(~ str_remove(., " Results_PCB"), everything()) %>% 
+    pivot_longer(-Stage) %>%
+    rename_with(~ str_remove(., " Results"), everything()) %>% 
+    mutate(analytes=fct_relevel(name, "HCB Results","b-HCH Results")) %>%
+    count(Stage, name, wt = value)
+    colnames(T_2_PCB_stats_sd)[colnames(T_2_PCB_stats_sd) == "n"]="SD"
+
+PCB_2t_sd<-T_2_PCB_stats_sd %>% filter(Stage=="2T")
+PCB_2t_sd<- subset(PCB_2t_sd, select = -c(Stage))
+
+PCB_3t_sd<-T_2_PCB_stats_sd %>% filter(Stage=="3T")
+PCB_3t_sd<- subset(PCB_3t_sd, select = -c(Stage,name))
+
+PCB_post_sd<-T_2_PCB_stats_sd %>% filter(Stage=="Post")
+PCB_post_sd<- subset(PCB_post_sd, select = -c(Stage,name))
+
+stats_PCB=cbind(PCB_2t_median,PCB_2t_mean,PCB_2t_sd, PCB_3t_median,PCB_3t_mean,PCB_3t_sd, PCB_post_median,PCB_post_mean,PCB_post_sd)
+
+is.num <- sapply(stats_PCB, is.numeric)
+stats_PCB[is.num] <- lapply(stats_PCB[is.num], round, 3)
+
+
+
+#IQR
+PCB_stats_IQR <- notes_PCB %>% 
+  select(c('PCB-118  Results', 'PCB-153 Results','PCB-138 Results','PCB-156 Results', 'PCB-157 Results', 'PCB-180 Results', 'PCB-170 Results')) %>% 
+    replace(is.na(.), 0) %>% 
+    rename_with(~ str_remove(., " Results"), everything())
+
+IQR_PCB_IQR_2T<-PCB_stats_IQR %>% filter(Stage=="2T")
+IQR_PCB_IQR_2T<- subset(IQR_PCB_IQR_2T, select = -c(Stage))
+
+IQR_PCB_IQR_3T<-PCB_stats_IQR %>% filter(Stage=="3T")
+IQR_PCB_IQR_3T<- subset(IQR_PCB_IQR_3T, select = -c(Stage))
+
+IQR_PCB_IQR_Post<-PCB_stats_IQR %>% filter(Stage=="Post")
+IQR_PCB_IQR_Post<- subset(IQR_PCB_IQR_Post, select = -c(Stage))
+
+
+IQR_PCB_2T<-as.data.frame(lapply(IQR_PCB_IQR_2T,quantile,probs=seq(0, 1, 1/4)))
+IQR_PCB_3T<-as.data.frame(lapply(IQR_PCB_IQR_3T,quantile,probs=seq(0, 1, 1/4)))
+IQR_PCB_Post<-as.data.frame(lapply(IQR_PCB_IQR_Post,quantile,probs=seq(0, 1, 1/4)))
+
+
+IQR_PCB=cbind(IQR_PCB_2T,IQR_PCB_3T,IQR_PCB_Post)
+
+IQR_PCB<-signif(IQR_PCB,2) 
+
+```
+
+
+### OCP Summary
+#### Descriptive Statistics
+```{r Display Summary Table - OCP, echo=FALSE,message=FALSE,warning=FALSE, digits = 3}
+
+stats_OCP %>%
+    kbl(
+    caption = "<center><span style='font-size:30px'>OCP: Unspiked QCs - Descriptive Statistics </span></center>") %>% 
+    add_header_above(c(" " = 1, "2T" = 3, "3T" =3, "Post" = 3)) %>% 
+  kable_styling( stripe_color = "gray!6",
+    bootstrap_options = c("striped", "hover")) %>% 
+    scroll_box(width = "1000px", height = "500px")
+```
+
+
+#### IQR
+```{r Display IQR - OCP, echo=FALSE,message=FALSE,warning=FALSE, digits = 3}
+IQR_OCPPBDE %>% 
+  kbl(
+    caption = "<center><span style='font-size:30px'>OCP: Unspiked QCs - IQR </span></center>") %>%
+    add_header_above(c("2T" = 6, "3T" =5, "Post" = 5)) %>% 
+  kable_styling( stripe_color = "gray!6",
+    bootstrap_options = c("striped", "hover")) %>% 
+    scroll_box(width = "1000px", height = "500px")
+```
+
+
+
+### PCB Summary
+#### Descriptive Statistics
+```{r Display Summary Table - PCB, echo=FALSE,message=FALSE,warning=FALSE}
+
+stats_PCB %>%
+    kbl(
+    caption = "<center><span style='font-size:30px'>PCB: Unspiked QCs - Descriptive Statistics </span></center>") %>% 
+    add_header_above(c(" " = 1, "2T" = 3, "3T" =3, "Post" = 3)) %>% 
+  kable_styling( stripe_color = "gray!6",
+    bootstrap_options = c("striped", "hover")) %>% 
+    scroll_box(width = "1000px", height = "500px")
+```
+
+#### IQR
+```{r Display IQR Table - PCB, echo=FALSE,message=FALSE,warning=FALSE}
+IQR_PCB %>% 
+  kbl(
+    caption = "<center><span style='font-size:30px'>PCB: Unspiked QCs - IQR </span></center>") %>%
+    add_header_above(c("2T" = 8, "3T" =7, "Post" = 7)) %>% 
+  kable_styling( stripe_color = "gray!6",
+    bootstrap_options = c("striped", "hover")) %>% 
+    scroll_box(width = "1000px", height = "500px")
+```
+
+
+# Heatmap - Spearman correlation
+### OCP
+```{r OCP: Calulate correlation, echo=FALSE,message=FALSE,warning=FALSE}
+#2T
+T_2_OCP <-T_2_OCP %>% 
+  select(where(is.numeric)) %>% 
+  mutate_all(funs(replace_na(.,0)))
+  
+  
+t2_cor_matrix <- cor(T_2_OCP, method = "spearman")
+t2_cor_matrix[is.na(t2_cor_matrix)] <- 0
+
+#3T
+T_3_OCP <-T_3_OCP %>% 
+  select(where(is.numeric)) %>% 
+  mutate_all(funs(replace_na(.,0)))
+  
+  
+t3_cor_matrix <- cor(T_3_OCP, method = "spearman")
+t3_cor_matrix[is.na(t3_cor_matrix)] <- 0
+
+#Post
+T_Post_OCP <-T_Post_OCP %>% 
+  select(where(is.numeric)) %>% 
+  mutate_all(funs(replace_na(.,0)))
+  
+  
+post_cor_matrix <- cor(T_Post_OCP, method = "spearman")
+post_cor_matrix[is.na(post_cor_matrix)] <- 0
+
+```
+
+```{r Heatmap OCP : 2T - display, echo=FALSE,message=FALSE,warning=FALSE,fig.height = 10, fig.width = 10 }
+corrplot(t2_cor_matrix,
+  method = "color",
+  type = "upper",
+  tl.cex = 0.7,
+  tl.col = "black",
+  tl.srt = 45,
+  addCoef.col = "black",
+  title = "Spearman Correlation - 2T",
+  mar=c(0,0,2,0),
+  diag=FALSE
+)
+
+```
+
+
+```{r Heatmap ocp: 3T - display, echo=FALSE,message=FALSE,warning=FALSE,fig.height = 10, fig.width = 10}
+corrplot(t3_cor_matrix,
+  method = "color",
+  type = "upper",
+  tl.cex = 0.7,
+  tl.col = "black",
+  tl.srt = 45,
+  addCoef.col = "black",
+  title = "Spearman Correlation - 3T",
+    mar=c(0,0,2,0),
+  diag=FALSE
+)
+```
+
+```{r Heatmap OCP: Post- display, echo=FALSE,message=FALSE,warning=FALSE,fig.height = 10, fig.width = 10}
+corrplot(post_cor_matrix,
+  method = "color",
+  type = "upper",
+  tl.cex = 0.8,
+  tl.col = "black",
+  tl.srt = 45,
+  addCoef.col = "black",
+  title = "Spearman Correlation - Post",
+    mar=c(0,0,2,0),
+  diag=FALSE
+)
+```
+
+### PCB
+
+```{r PCB: Calulate correlation, echo=FALSE,message=FALSE,warning=FALSE}
+#2T
+T_2_PCB <-T_2_PCB %>% 
+  select(where(is.numeric)) %>% 
+  select(-"Tooth Powder Weight (mg)") %>% 
+  mutate_all(funs(replace_na(.,0)))
+  
+  
+PCB_t2_cor_matrix <- cor(T_2_PCB, method = "spearman")
+PCB_t2_cor_matrix[is.na(PCB_t2_cor_matrix)] <- 0
+
+#3T
+T_3_PCB <-T_3_PCB %>% 
+  select(where(is.numeric)) %>% 
+  select(-"Tooth Powder Weight (mg)") %>% 
+  mutate_all(funs(replace_na(.,0)))
+  
+  
+pcb_t3_cor_matrix <- cor(T_3_PCB, method = "spearman")
+pcb_t3_cor_matrix[is.na(pcb_t3_cor_matrix)] <- 0
+
+#Post
+T_Post_PCB <-T_Post_PCB %>% 
+  select(where(is.numeric)) %>% 
+  select(-"Tooth Powder Weight (mg)") %>% 
+  mutate_all(funs(replace_na(.,0)))
+  
+  
+pcb_post_cor_matrix <- cor(T_Post_PCB, method = "spearman")
+pcb_post_cor_matrix[is.na(pcb_post_cor_matrix)] <- 0
+```
+
+```{r Heatmap PCB : 2T - display, echo=FALSE,message=FALSE,warning=FALSE,fig.height = 10, fig.width = 10 }
+corrplot(PCB_t2_cor_matrix,
+  method = "color",
+  type = "upper",
+  tl.cex = 0.7,
+  tl.col = "black",
+  tl.srt = 45,
+  addCoef.col = "black",
+  title = "Spearman Correlation - 2T",
+  mar=c(0,0,2,0),
+  diag=FALSE
+)
+
+```
+
+```{r Heatmap PCB : 3T - display, echo=FALSE,message=FALSE,warning=FALSE,fig.height = 10, fig.width = 10 }
+corrplot(pcb_t3_cor_matrix,
+  method = "color",
+  type = "upper",
+  tl.cex = 0.7,
+  tl.col = "black",
+  tl.srt = 45,
+  addCoef.col = "black",
+  title = "Spearman Correlation - 3T",
+  mar=c(0,0,2,0),
+  diag=FALSE
+)
+
+```
+```{r Heatmap PCB : Post - display, echo=FALSE,message=FALSE,warning=FALSE,fig.height = 10, fig.width = 10 }
+corrplot(pcb_post_cor_matrix,
+  method = "color",
+  type = "upper",
+  tl.cex = 0.7,
+  tl.col = "black",
+  tl.srt = 45,
+  addCoef.col = "black",
+  title = "Spearman Correlation - Post",
+  mar=c(0,0,2,0),
+  diag=FALSE
+)
+
+```
+
+```{r echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
+write.csv(notes_OCPPBDE, "H:\\nguyet53\\R\\Drexel R\\Drexel_1_13_OCPPBDE_2.csv", row.names=TRUE)
+write.csv(notes_PCB, "H:\\nguyet53\\R\\Drexel R\\Drexel_1_13_PCB_2.csv", row.names=TRUE)
+```
+
+
+
