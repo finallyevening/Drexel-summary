@@ -621,6 +621,7 @@ PCB_QC<-PCB_QC[,-c(1:3,6:7)]
 #Create OCP and PBDE names categories 
 OCP_colnames<-c("HCB Results","b-HCH Results","Oxychlordane Results","trans-Nonachlor Results","pp-DDE-2 Results", "pp-DDT Results")
 PBDE_colnames<-c("BDE-28 Results', 'pp-DDE Results','pp-DDT-2 Results','BDE-47 Results','BDE-100 Results','BDE-99 Results','BDE-153 Results")
+PCB_colnames<-c('PCB-118  Results', 'PCB-153 Results','PCB-138 Results','PCB-156 Results', 'PCB-157 Results', 'PCB-180 Results', 'PCB-170 Results')
 
 all_weight <- import_list('H:\\nguyet53\\R\\Drexel R\\Copy of Drexel extraction_Batches_BA.xlsx', setclass = "tbl", rbind = TRUE)
 
@@ -1354,7 +1355,7 @@ PCB_QC_recovery_mean<- subset(PCB_QC_recovery_mean, select = -Batch_number)
 
 
 
-```{r Creating sd,mean table echo=FALSE,message=FALSE,warning=FALSE, results='hide' }
+```{r Creating sd,mean table Spike OCP, echo=FALSE,message=FALSE,warning=FALSE}
 stats_OCP<-(OCPPBDE_QC_Spiked) %>% 
   as.tibble() %>% 
   select(OCP_colnames) %>%
@@ -1368,7 +1369,7 @@ stats_OCP<-(OCPPBDE_QC_Spiked) %>%
          `sd-2`= (`mean` - 2*(`sd`))
           
          ) %>% 
-  as.data.frame(stats)
+  as.data.frame(stats_OCP)
 
 ```
 ```{r}
@@ -1729,7 +1730,7 @@ OCPPBDE_QC_unspike_mean %>%
     ggtitle("Untargetted Pool average concentration - OCP/PBDE") + 
     theme(plot.title = element_text(hjust = 0.5))
 ```
-```{r Creating sd,mean table echo=FALSE,message=FALSE,warning=FALSE, results='hide' }
+```{r Creating sd,mean table Unspike OCP, echo=FALSE,message=FALSE,warning=FALSE}
 stats_OCP_Unspike<-(OCPPBDE_QC_Unspike) %>% 
   as.tibble() %>% 
   select(OCP_colnames) %>%
@@ -1755,7 +1756,7 @@ stats_OCP_Unspike_longer<-(OCPPBDE_QC_Unspike) %>%
 
 ```
 
-```{r HCB plot: Running average distribution, echo=FALSE,message=FALSE,warning=FALSE,  fig.height = 60, fig.width =15}
+```{r OCP Unspike plot: Running average distribution, echo=FALSE,message=FALSE,warning=FALSE,  fig.height = 60, fig.width =15}
 OCPPBDE_QC_Unspike_min<-OCPPBDE_QC_Unspike %>% 
   as.data.frame() %>% 
   select(OCP_colnames) %>% 
@@ -1813,7 +1814,7 @@ shewhart_ocp_unspike<-ggplot(max_min_unspike_ocp, aes(x = factor(Batch_num), y =
 
 
 ### Shewhart Chart: OCP (Unspiked)
-```{r Display Unspiked OCP Shewhart Chart, echo=FALSE,message=FALSE,warning=FALSE,  fig.height = 60, fig.width =15}
+```{r Display Unspiked OCP Shewhart Chart, echo=FALSE,message=FALSE,warning=FALSE,  fig.height = 40, fig.width =10}
 shewhart_ocp_unspike 
 ```
 
@@ -1835,7 +1836,95 @@ PCB_QC_unspike_mean %>%
     ggtitle("Untargetted Pool average concentration - PCB") + 
     theme(plot.title = element_text(hjust = 0.5))
 ```
+```{r Creating sd,mean table, echo=FALSE,message=FALSE,warning=FALSE, results='hide' }
+stats_PCB_Unspike<-(PCB_QC_Unspike) %>% 
+  as.tibble() %>% 
+  select(PCB_colnames) %>%
+  summarise_all(funs(mean,sd)) %>% 
+   pivot_longer(cols = everything(), 
+               names_to = c('variable', '.value'), 
+               names_sep = '_') %>%
+  mutate(`sd+1`=(`mean` + `sd`),
+         `sd-1`= (`mean` - `sd`),
+         `sd+2`= (`mean` + 2*(`sd`)),
+         `sd-2`= (`mean` - 2*(`sd`))
+          
+         ) %>% 
+  as.data.frame(stats_PCB_Unspike)
 
+```
+
+```{r}
+stats_pcb_unspike_longer<-(PCB_QC_Unspike) %>% 
+  as.data.frame() %>% 
+  select(PCB_colnames,"Batch_num") %>% 
+  melt(id.vars = 'Batch_num')
+
+```
+
+```{r PCB Unspike plot: Running average distribution, echo=FALSE,message=FALSE,warning=FALSE}
+PCB_QC_Unspike_min<-PCB_QC_Unspike %>% 
+  as.data.frame() %>% 
+  select(PCB_colnames) %>% 
+  apply(2, min)
+
+PCB_QC_Unspike_max<-PCB_QC_Unspike %>% 
+  as.data.frame() %>% 
+  select(PCB_colnames) %>% 
+  apply(2, max)
+
+pcb_unspike_hline <- data.frame(
+  mean = c(stats_PCB_Unspike$`mean`),
+  sd1 = c(stats_PCB_Unspike$`sd+1`),
+  sd_1 = c(stats_PCB_Unspike$`sd-1`),
+  sd2 = c(stats_PCB_Unspike$`sd+2`),
+  sd_2 = c(stats_PCB_Unspike$`sd-2`),
+  linetype_mean = c("dotdash"),
+  linetype_sd1 = c("solid"),
+  linetype_sd_1 = c("solid"),
+  linetype_sd2= c("longdash"),
+  linetype_sd_2= c("longdash"),
+  variable = c(PCB_colnames)
+)
+
+max_min_unspike_pcb <- tibble(
+  variable = c(PCB_colnames),
+  y_min = c(PCB_QC_Unspike_min),
+  y_max = c(PCB_QC_Unspike_max)
+)
+
+max_min_unspike_pcb <- full_join(stats_pcb_unspike_longer, max_min_unspike_pcb, by = "variable")
+
+max_min_unspike_pcb<-max_min_unspike_pcb %>% 
+  group_by(Batch_num)
+
+shewhart_pcb_unspike<-ggplot(max_min_unspike_pcb, aes(x = factor(Batch_num), y = value, color=Batch_num)) + 
+  facet_wrap(~variable,ncol=1, scales="free_y")+
+    geom_blank(aes(y = y_min)) +
+    geom_blank(aes(y = y_max))+
+  geom_line(aes(color=`Batch_num`)) + 
+  geom_point(aes(fill = Batch_num)) + 
+    geom_hline(data = pcb_unspike_hline, aes(yintercept = `mean`, linetype= `linetype_mean`), color = "blue", size=0.6)+
+    geom_hline(data = pcb_unspike_hline, aes(yintercept = `sd1`,linetype= `linetype_sd1`),color = "black", size=0.2)+
+    geom_hline(data = pcb_unspike_hline, aes(yintercept = `sd_1`,linetype= `linetype_sd_1`),color = "black", size=0.2)+
+    geom_hline(data = pcb_unspike_hline, aes(yintercept = `sd2`,linetype=`linetype_sd2`),color = "black", size=0.2)+
+    geom_hline(data = pcb_unspike_hline, aes(yintercept = `sd_2`,linetype= `linetype_sd_2`),color = "black", size=0.2)+
+  guides(color="none")+
+  scale_linetype_manual(values = c(1,2,3,4,5), 
+                        labels = c("Running Average", "+/- 2 SD", "+/- 1 SD"),
+                        name = "Control Chart")+
+  theme(axis.title.y = element_text(size=10, face="bold", colour = "black"),
+        axis.text.y = element_text(size=10, face="bold", colour = "black"),
+        strip.text = element_text(face = "bold", size=10))+
+  labs(y="Concentration", x = "Batch number")+
+  ggtitle("QC Unspike: PCB distribution")
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+```{r Display PCB Unspike, echo=FALSE, message=FALSE, warning=FALSE, fig.height = 40, fig.width =10}
+shewhart_pcb_unspike
+```
 
 
 ```{r Hlines PCB Unspiked, echo=FALSE, message=FALSE, warning=FALSE}
