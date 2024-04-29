@@ -813,7 +813,11 @@ OCPPBDE_QC_Spiked<-OCPPBDE_QC %>%
   group_by(Type) %>% 
   filter(Type == "MatrixSpike" ) %>% 
   mutate(Batch_number = str_sub(`Data File`,1,5) ) %>% #keep only : 1st character until 5th character
-  mutate(Sample_name = str_sub(`Data File`,6) )
+  mutate(Sample_name = str_sub(`Data File`,6) ) %>% 
+  ungroup() %>%
+  group_by(`Batch_number`) %>% 
+  mutate(`sample_number` = n()) %>% 
+  ungroup()
 
 OCPPBDE_QC_Spiked$Batch_number <- gsub("_", "", OCPPBDE_QC_Spiked$Batch_number) #remove "_" in Batch Number column
 OCPPBDE_QC_Spiked$Sample_name<-gsub("_", "", OCPPBDE_QC_Spiked$Sample_name) # remove "_" in "Spiked Sample" column
@@ -879,7 +883,11 @@ PCB_QC_Spiked<-PCB_QC %>%
   group_by(Type) %>% 
   filter(Type == "MatrixSpike" ) %>% 
   mutate(Batch_number = str_sub(`Data File`,1,5) ) %>% #keep only : 1st character until 5th character
-  mutate(Sample_name = str_sub(`Data File`,6) )
+  mutate(Sample_name = str_sub(`Data File`,6) ) %>% 
+    ungroup() %>%
+  group_by(`Batch_number`) %>% 
+  mutate(`sample_number` = n()) %>% 
+  ungroup()
 
 PCB_QC_Spiked$Batch_number <- gsub("_", "", PCB_QC_Spiked$Batch_number) #remove "_"
 PCB_QC_Spiked$Sample_name<-gsub("_", "", PCB_QC_Spiked$Sample_name)
@@ -918,7 +926,11 @@ OCPPBDE_QC_Unspike<-OCPPBDE_QC %>%
   filter(Type == "MatrixBlank") %>% 
   mutate(Batch_number = str_sub(`Data File`,1,5) ) %>% #keep only : 1st character until 5th character
   mutate(Sample_name = str_sub(`Data File`,6) ) %>% 
-  mutate_all(funs(replace_na(.,0)))
+  mutate_all(funs(replace_na(.,0))) %>% 
+  ungroup() %>%
+  group_by(`Batch_number`) %>% 
+  mutate(`sample_number` = n()) %>% 
+  ungroup()
 
 
 OCPPBDE_QC_Unspike$Batch_number <- gsub("_", "", OCPPBDE_QC_Unspike$Batch_number) #remove "_"
@@ -945,8 +957,11 @@ PCB_QC_Unspike<-PCB_QC %>%
   filter(Type == "MatrixBlank") %>% 
   mutate(Batch_number = str_sub(`Data File`,1,5) ) %>% #keep only : 1st character until 5th character
   mutate(Sample_name = str_sub(`Data File`,6) ) %>% 
-  mutate_all(funs(replace_na(.,0)))
-
+  mutate_all(funs(replace_na(.,0))) %>% 
+  ungroup() %>%
+  group_by(`Batch_number`) %>% 
+  mutate(`sample_number` = n()) %>% 
+  ungroup()
 
 PCB_QC_Unspike$Batch_number <- gsub("_", "", PCB_QC_Unspike$Batch_number) #remove "_"
 PCB_QC_Unspike$Sample_name<-gsub("_", "", PCB_QC_Unspike$Sample_name)
@@ -1380,7 +1395,7 @@ df111<-(OCPPBDE_QC_Spiked) %>%
 
 ```
 
-```{r HCB plot: Running average distribution, echo=FALSE,message=FALSE,warning=FALSE,  fig.height = 60, fig.width =15}
+```{r HCB plot: Running average distribution, echo=FALSE,message=FALSE,warning=FALSE,  fig.height = 25, fig.width =10}
 OCPPBDE_QC_Spiked_min<-OCPPBDE_QC_Spiked %>% 
   as.data.frame() %>% 
   select(OCP_colnames) %>% 
@@ -1412,9 +1427,13 @@ max_min_spiked_ocp <- tibble(
 )
 
 max_min_spiked_ocp <- full_join(df111, max_min_spiked_ocp, by = "variable")
+max_min_spiked_ocp<- max_min_spiked_ocp %>% 
+    mutate(`Batch_num2` = `Batch_num`)
+max_min_spiked_ocp$Batch_num<-as.character(max_min_spiked_ocp$Batch_num)
 
-avg_plot1<-ggplot(max_min_spiked_ocp, aes(x = factor(Batch_num), y = value)) + 
-  facet_wrap(~variable,ncol=1, scales="free_y")+
+avg_plot1<- max_min_spiked_ocp %>%
+  ggplot(aes(x = factor(Batch_num2), y = value)) + 
+  facet_wrap(~variable, scales="free",ncol=1)+
     geom_blank(aes(y = y_min)) +
     geom_blank(aes(y = y_max))+
   geom_line(aes(color=`Batch_num`)) + 
@@ -1436,6 +1455,7 @@ avg_plot1<-ggplot(max_min_spiked_ocp, aes(x = factor(Batch_num), y = value)) +
   
 avg_plot1  
 ```
+
 
 
 
