@@ -1494,7 +1494,7 @@ avg_plot1
 
 
 OCPPBDE_QC_recovery_mean_rounded<-OCPPBDE_QC_recovery_mean %>%
-  select("HCB","Oxychlordane","Oxychlordane","trans-Nonachlor", "pp-DDE","pp-DDT","Batch_num") %>% 
+  select("HCB","b-HCH","Oxychlordane","trans-Nonachlor", "pp-DDE","pp-DDT","Batch_num") %>% 
     group_by(Batch_num) %>% 
     pivot_longer(-Batch_num) %>%
     mutate(analytes=fct_relevel(name, "HCB Results")) %>%
@@ -1601,6 +1601,17 @@ ocp1<-ggplot(OCPPBDE_QC_recovery, aes(factor(Batch_num), HCB, color=OCPPBDE_QC_r
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
     theme(legend.position = "none")
 
+#b-HCH
+ocp2<-ggplot(OCPPBDE_QC_recovery, aes(factor(Batch_num), `b-HCH`, color=OCPPBDE_QC_recovery$Batch_number)) +
+    geom_point() +
+    labs(y= "Recovery %", x = "Batch Number")+
+    geom_hline(yintercept = 100, linetype="dashed", 
+                color = "blue")+
+    scale_y_continuous(trans='log10')+
+    ggtitle("b-HCH concentration - Spiked QCs ") + 
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")
 
 #Oxychlordane
 ocp3<-ggplot(OCPPBDE_QC_recovery, aes(factor(Batch_num), `Oxychlordane`, color=OCPPBDE_QC_recovery$Batch_number)) +
@@ -1656,9 +1667,9 @@ ocp7<-ggplot(OCPPBDE_QC_recovery, aes(factor(Batch_num), `pp-DDT`, color=OCPPBDE
 
 
 
-grid.arrange(ocp1, ocp3, ncol=2)
-grid.arrange(ocp4, ocp5, ncol=2)
-grid.arrange(ocp7, ncol=1)
+grid.arrange(ocp1, ocp2, ncol=2)
+grid.arrange(ocp3, ocp4, ncol=2)
+grid.arrange(ocp5, ocp7, ncol=2)
 
 
 ```
@@ -1872,7 +1883,7 @@ shewhart_ocp_unspike<- max_min_unspike_ocp %>%
 
 ### Shewhart Chart: OCP (Unspiked)
 
-```{r Display Unspiked OCP Shewhart Chart, echo=FALSE,message=FALSE,warning=FALSE,  fig.height = 40, fig.width =10}
+```{r Display Unspiked OCP Shewhart Chart, echo=FALSE,message=FALSE,warning=FALSE,  fig.height = 30, fig.width =7}
 shewhart_ocp_unspike 
 ```
 
@@ -1960,7 +1971,7 @@ shewhart_pcb_unspike<-ggplot(max_min_unspike_pcb, aes(x = factor(Batch_num2), y 
     geom_blank(aes(y = y_min)) +
     geom_blank(aes(y = y_max))+
   geom_line(aes(color=`Batch_num`)) + 
-  geom_point(aes(fill = Batch_num)) + 
+  geom_point(aes(color = `Batch_num`)) + 
     geom_hline(data = pcb_unspike_hline, aes(yintercept = `mean`, linetype= `linetype_mean`), color = "blue", size=0.6)+
     geom_hline(data = pcb_unspike_hline, aes(yintercept = `sd1`,linetype= `linetype_sd1`),color = "black", size=0.2)+
     geom_hline(data = pcb_unspike_hline, aes(yintercept = `sd_1`,linetype= `linetype_sd_1`),color = "black", size=0.2)+
@@ -1974,12 +1985,11 @@ shewhart_pcb_unspike<-ggplot(max_min_unspike_pcb, aes(x = factor(Batch_num2), y 
         axis.text.y = element_text(size=10, face="bold", colour = "black"),
         strip.text = element_text(face = "bold", size=10))+
   labs(y="Concentration", x = "Batch number")+
-  ggtitle("QC Unspike: PCB distribution")
-  theme(plot.title = element_text(hjust = 0.5))
+  ggtitle("QC Unspiked : PCB distribution")
 
 ```
 
-```{r Display PCB Unspike, echo=FALSE, message=FALSE, warning=FALSE, fig.height = 40, fig.width =10}
+```{r Display PCB Unspike, echo=FALSE, message=FALSE, warning=FALSE, fig.height = 30, fig.width =7}
 shewhart_pcb_unspike
 ```
 
