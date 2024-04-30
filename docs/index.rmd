@@ -2267,6 +2267,7 @@ IQR_PCB %>%
 #2T
 T_2_OCP <-T_2_OCP %>% 
   select(where(is.numeric)) %>% 
+    select(-c("#", "Total # samples in the fraction")) %>% 
   mutate_all(funs(replace_na(.,0)))
   
   
@@ -2275,7 +2276,8 @@ t2_cor_matrix[is.na(t2_cor_matrix)] <- 0
 
 #3T
 T_3_OCP <-T_3_OCP %>% 
-  select(where(is.numeric)) %>% 
+  select(where(is.numeric)) %>%
+    select(-c("#", "Total # samples in the fraction")) %>% 
   mutate_all(funs(replace_na(.,0)))
   
   
@@ -2285,6 +2287,7 @@ t3_cor_matrix[is.na(t3_cor_matrix)] <- 0
 #Post
 T_Post_OCP <-T_Post_OCP %>% 
   select(where(is.numeric)) %>% 
+    select(-c("#", "Total # samples in the fraction")) %>% 
   mutate_all(funs(replace_na(.,0)))
   
   
@@ -2342,7 +2345,7 @@ corrplot(post_cor_matrix,
 #2T
 T_2_PCB <-T_2_PCB %>% 
   select(where(is.numeric)) %>% 
-  select(-"Tooth Powder Weight (mg)") %>% 
+  select(-c("#")) %>% 
   mutate_all(funs(replace_na(.,0)))
   
   
@@ -2352,7 +2355,7 @@ PCB_t2_cor_matrix[is.na(PCB_t2_cor_matrix)] <- 0
 #3T
 T_3_PCB <-T_3_PCB %>% 
   select(where(is.numeric)) %>% 
-  select(-"Tooth Powder Weight (mg)") %>% 
+  select(-c("#")) %>% 
   mutate_all(funs(replace_na(.,0)))
   
   
@@ -2362,7 +2365,7 @@ pcb_t3_cor_matrix[is.na(pcb_t3_cor_matrix)] <- 0
 #Post
 T_Post_PCB <-T_Post_PCB %>% 
   select(where(is.numeric)) %>% 
-  select(-"Tooth Powder Weight (mg)") %>% 
+  select(-c("#")) %>% 
   mutate_all(funs(replace_na(.,0)))
   
   
