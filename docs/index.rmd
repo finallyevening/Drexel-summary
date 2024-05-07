@@ -1722,7 +1722,7 @@ PCB_QC_recovery_mean_rounded %>%
         axis.text=element_text(size=50),
         axis.title.y = element_text(size = 60),
         axis.title.x = element_text(size = 60))+
-    scale_fill_manual(values = c("#808080", "#FC2D00"),
+    scale_fill_manual(values = c( "#FC2D00"),
                     labels=c('TRUE'='>100 %','FALSE'='= or <100 %')
   )
 #use runnig average
@@ -1735,7 +1735,7 @@ PCB_QC_recovery_mean_rounded %>%
 
 ### OCP (Spiked): Recovery(%) by Analyte
 
-```{r OCP spiked batch cleanup, echo=FALSE,message=FALSE,warning=FALSE}
+```{r OCP spiked batch cleanup, echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
 OCPPBDE_QC_recovery<-OCPPBDE_QC_recovery %>% 
   mutate(Batch_num=str_sub(`Batch_number`,4,5))
 
@@ -1852,9 +1852,9 @@ grid.arrange(ocp5, ocp7, ncol=2)
 
 ```
 
-### OCP (Spiked) : Scatterplot- all samples
+### OCP (Spiked) : Scatterplot- all QCs
 
-```{r}
+```{r OCP (Spiked) : Scatterplot- all samples, echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
 q<-OCPPBDE_QC_Spiked %>% 
   select("Type",OCP_colnames, "Batch_num") %>% 
   group_by("Batch_num") %>% 
@@ -1875,7 +1875,6 @@ signif(s$value,digits = 8)
 
 ocp_qc_batches<-cbind(q,s)
 ocp_qc_batches <- ocp_qc_batches[, !duplicated(colnames(ocp_qc_batches), fromLast = TRUE)] 
-ocp_qc_batches$var <- gsub("Results", "", ocp_qc_batches$var) #remove "Results"
 ocp_qc_batches<-ocp_qc_batches %>% 
   group_by(var) %>% 
   mutate('n (per analyte)' = n()) %>% 
@@ -1888,51 +1887,110 @@ ocp_qc_batches$Batch_num<-as.character(ocp_qc_batches$Batch_num)
 ```
 
 
-```{r OCP QC SCatterplot, all samples }
+```{r OCP QC SCatterplot - display plot, all samples, echo=FALSE,message=FALSE,warning=FALSE, fig.height = 30, fig.width =10 }
 ocp_qc_batches %>%
-  group_by(Batch_num) %>% 
-  ggplot(aes(x = factor(Batch_num2),  y = value)) +
-  geom_line(aes(color=`Batch_num`)) + 
+group_by(Batch_num) %>% 
+  ggplot(aes(x = factor(Batch_num2), y = value)) + 
+  facet_wrap(~variable, scales="free",ncol=1)+
   geom_point(aes(color=`Batch_num`)) + 
-  facet_wrap(~var,scales = "free", ncol=2)+
-  labs(y="Concentration (log10)", x = "Batch number", 
-       title = expression("Batch Effect Evaluation: OCP (spiked)"),
-       subtitle = expression("QC concentration with all of the samples, grouped by analyte")
-       )+
+  geom_hline(data = ocp_hline, aes(yintercept = ocp_hline$mean,linetype = factor(ocp_hline$linetype_mean), show_guide = TRUE),
+            color = "blue", size=0.6)+
   guides(color="none")+
-    geom_hline(data = ocp_qc_hline, aes(yintercept = ocp_qc_hline$,linetype = factor(ocp_hline$linetype_mean), 
-                                        show_guide = TRUE),color = "blue", size=0.6)+
+  scale_linetype_manual(values = c(1,5,6), 
+                        labels = c("Running Average", "+/- 1 SD", "+/- 2 SD"),
+                        name = "Control Chart")+
+  theme(axis.title.y = element_text(size=10, face="bold", colour = "black"),
+        axis.text.y = element_text(size=10, face="bold", colour = "black"),
+        strip.text = element_text(face = "bold", size=10))+
+  labs(y="Concentration (log10)", x = "Batch number", 
+       title =  paste0("OCP (Spiked)"),
+       subtitle = paste0("n=",ocp_qc_batches$`n (per analyte)`[1])) +
   scale_fill_manual(values = vit_c_palette)+
-  scale_y_continuous(trans='log10')+
-  theme(legend.key.height= unit(5, 'cm'),
-        legend.key.width= unit(5, 'cm'),
-        legend.title = element_text(size=25),
-        legend.text = element_text(size=25),
-        text = element_text(colour = vit_c_palette["light_text"],family = "Cabin"),
+  theme(text = element_text(colour = vit_c_palette["light_text"],family = "Cabin"),
         plot.title = element_text(colour = vit_c_palette["dark_text"], #plot title
-                                  size = rel(3.5), 
+                                  size = rel(1), 
                                   face = "bold",
+                                  family = "Enriqueta",
                                   lineheight = 1,
                                   margin = margin(0.5, 0, 1, 0, "lines")),
-        plot.subtitle = element_text(size = rel(2.5), lineheight = 1.3,
+        plot.subtitle = element_text(size = rel(1), lineheight = 1,
                                      margin = margin(0, 0, 1, 0, "lines")),
-        strip.text = element_text(colour = vit_c_palette["light_text"], 
-                                  size = 25, face = "bold"),
-        axis.text=element_text(size=25),
-        axis.title.y = element_text(size = 25),
-        axis.title.x = element_text(size = 25))
+        strip.text = element_text(family = "Enriqueta",
+                                  colour = vit_c_palette["light_text"], face = "bold"))
+
+        
+```
+
+### PCB (Spiked):Scatterplot - all QCs
+
+```{r PCB (Spiked) - all samples, echo=FALSE,message=FALSE,warning=FALSE,results='hide'}
+q<-PCB_QC_Spiked %>% 
+  select("Type",PCB_colnames, "Batch_num") %>% 
+  group_by("Batch_num") %>% 
+  gather(var, value,-Type) %>% 
+  filter(str_detect(var,"Results"))
+  
+q$value<-as.numeric(as.character(q$value))
+signif(q$value,digits = 8)
+
+s<-PCB_QC_Spiked %>% 
+  select("Type",PCB_colnames, "Batch_num") %>%
+  group_by("Batch_num") %>%
+  gather(var, value,-Batch_num) %>% 
+  filter(str_detect(var,"Results"))
+
+s$value<-as.numeric(as.character(s$value))
+signif(s$value,digits = 8)
+
+pcb_qc_batches<-cbind(q,s)
+pcb_qc_batches <- pcb_qc_batches[, !duplicated(colnames(pcb_qc_batches), fromLast = TRUE)] 
+pcb_qc_batches<-pcb_qc_batches %>% 
+  group_by(var) %>% 
+  mutate('n (per analyte)' = n()) %>% 
+  ungroup() %>% 
+  mutate(`Batch_num2` = `Batch_num`)
+pcb_qc_batches$Batch_num<-as.character(pcb_qc_batches$Batch_num)
 
 
-    geom_text(data = textframe, 
-              aes(x, y = Inf, label = labels), 
-              hjust = c(0,1), 
-              vjust = 1)
+
+```
+
+```{r PCB QC SCatterplot - display plot, all samples, echo=FALSE,message=FALSE,warning=FALSE, fig.height = 30, fig.width =10 }
+pcb_qc_batches %>%
+group_by(Batch_num) %>% 
+  ggplot(aes(x = factor(Batch_num2), y = value)) + 
+  facet_wrap(~variable, scales="free",ncol=1)+
+  geom_point(aes(color=`Batch_num`)) + 
+  geom_hline(data = pcb_hline, aes(yintercept = pcb_hline$mean,linetype = factor(pcb_hline$linetype_mean), show_guide = TRUE),
+            color = "blue", size=0.6)+
+  guides(color="none")+
+  scale_linetype_manual(values = c(1,5,6), 
+                        labels = c("Running Average", "+/- 1 SD", "+/- 2 SD"),
+                        name = "Control Chart")+
+  theme(axis.title.y = element_text(size=10, face="bold", colour = "black"),
+        axis.text.y = element_text(size=10, face="bold", colour = "black"),
+        strip.text = element_text(face = "bold", size=10))+
+  labs(y="Concentration (log10)", x = "Batch number", 
+       title =  paste0("PCB (Spiked)"),
+       subtitle = paste0("n=",pcb_qc_batches$`n (per analyte)`[1])) +
+  scale_fill_manual(values = vit_c_palette)+
+  theme(text = element_text(colour = vit_c_palette["light_text"],family = "Cabin"),
+        plot.title = element_text(colour = vit_c_palette["dark_text"], #plot title
+                                  size = rel(1), 
+                                  face = "bold",
+                                  family = "Enriqueta",
+                                  lineheight = 1,
+                                  margin = margin(0.5, 0, 1, 0, "lines")),
+        plot.subtitle = element_text(size = rel(1), lineheight = 1,
+                                     margin = margin(0, 0, 1, 0, "lines")),
+        strip.text = element_text(family = "Enriqueta",
+                                  colour = vit_c_palette["light_text"], face = "bold"))
+
+        
 ```
 
 
-
-
-```{r PCB spiked batch cleanup, echo=FALSE,message=FALSE,warning=FALSE}
+```{r PCB spiked batch cleanup, echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
 PCB_QC_recovery<-PCB_QC_recovery %>% 
   mutate(Batch_num=str_sub(`Batch_number`,4,5))
 
