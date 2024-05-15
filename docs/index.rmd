@@ -2,15 +2,19 @@
 title: "Drexel Data Batches 1-13"
 author: "Viola Nguyen"
 date: "4/17/2024"
-output: 
+output:
   html_document:
     theme: cerulean
     css: styles.css
-    toc: yes
-    number_sections: yes
-    toc_float: yes
-    collapsed: no
-    smooth_scroll: yes
+    toc: true
+    number_sections: true
+    toc_float: true
+    collapsed: false
+    smooth_scroll: true
+  pdf_document:
+    toc: true
+  word_document:
+    toc: true
 ---
 
 ```{r setup, echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
@@ -851,8 +855,8 @@ OCPPBDE_QC_recovery<-OCPPBDE_QC_Spiked %>%
 ```
 
 ```{r QC OCP Spiked - Recovery Calculation }
-#Spiked QC recovery was calculated with target of 0.2ppm
-target_recovery = (~ ./0.2*(100))
+#Spiked QC recovery was calculated with target of 0.1ppm
+target_recovery = (~ ./0.1*(100))
 
 OCPPBDE_QC_recovery_mean<-OCPPBDE_QC_Spiked %>% 
   mutate((across(ends_with('Results'), target_recovery))) %>% 
@@ -1612,10 +1616,9 @@ avg_plot1<- max_min_spiked_ocp %>%
     geom_blank(aes(y = y_max))+
   geom_line(aes(color=`Batch_num`)) + 
   geom_point(aes(color=`Batch_num`)) + 
-  geom_hline(data = ocp_hline, aes(yintercept = ocp_hline$mean,linetype = factor(ocp_hline$linetype_mean), show_guide = TRUE),
-            color = "blue", size=0.6)+
+  geom_hline(data = ocp_hline, aes(yintercept = ocp_hline$mean,linetype = factor(ocp_hline$linetype_mean), show_guide = TRUE),color = "blue", size=0.6)+
   geom_label_repel(data = ocp_hline, 
-                  aes(x = 4, y = ocp_hline$mean + 0.01,label = paste0(average_symbol, "=", sprintf("%.3f",ocp_hline$mean))),#sig figs
+       aes(x = 4, y = ocp_hline$mean + 0.01,label = paste0(average_symbol, "=", sprintf("%.3f",ocp_hline$mean))),#sig figs
                   size=3,point.size = NA, #Do not repel labels from data points
     )+ 
   geom_hline(data = ocp_hline, aes(yintercept = ocp_hline$sd1, linetype = factor(ocp_hline$linetype_sd1), show_guide=TRUE),
@@ -1698,10 +1701,10 @@ avg_plot2<- max_min_spiked_pcb %>%
   geom_line(aes(color=`Batch_num`)) + 
   geom_point(aes(color=`Batch_num`)) +
     geom_label_repel(data = pcb_hline, 
-                  aes(x = 4, y = pcb_hline$mean + 0.001, label = paste0(average_symbol, "=", sprintf("%.3f",pcb_hline$mean))),#sig figs
-                  size=3,point.size = NA, #Do not repel labels from data points
+                  aes(x = 5, y = pcb_hline$mean + 0.001, label = paste0(average_symbol, "=", sprintf("%.3f",pcb_hline$mean))),#sig figs
+                  size=3, #Do not repel labels from data points
                   min.segment.length = unit(0, 'lines'),
-                      arrow = arrow(length = unit(0.02, "npc")),box.padding = 1
+                      arrow = arrow(length = unit(0.01, "npc")),box.padding = 3
     )+ 
   geom_hline(data = pcb_hline, aes(yintercept = pcb_hline$mean,linetype = factor(pcb_hline$linetype_mean), show_guide = TRUE),
             color = "blue", size=0.6)+
@@ -1807,7 +1810,7 @@ PCB_QC_recovery_mean_rounded %>%
     labs(y= "Analytes", x = "Recovery %", fill='Recovery %')+
     geom_vline(aes(),xintercept = 100, linetype="dashed", 
                 color = "blue", size=1)+
-    ggtitle("Spiked average recovery % per batch - OCP/PBDE") + 
+    ggtitle("Spiked average recovery % per batch - PCB") + 
     theme(plot.title = element_text(hjust = 0.5)) +
   theme(legend.key.height= unit(5, 'cm'),
         legend.key.width= unit(5, 'cm'),
@@ -1821,11 +1824,7 @@ PCB_QC_recovery_mean_rounded %>%
     scale_fill_manual(values = c( "#FC2D00"),
                     labels=c('TRUE'='>100 %','FALSE'='= or <100 %')
   )
-#use runnig average
-#check b24
-#plot blanks shewhart
-#pcb check 1-b11
-#substrack conc - blanks
+
 
 ```
 
@@ -1843,215 +1842,6 @@ OCPPBDE_QC_recovery<-OCPPBDE_QC_recovery %>%
 OCPPBDE_QC_recovery_batch<-data.frame(OCPPBDE_QC_recovery$Batch_num)
 ```
 
-```{r QC plot - OCP spiked, echo=FALSE,message=FALSE,warning=FALSE}
-legend_title <- "Batches"
-
-
-
-
-#HCB
-ocp1<-OCPPBDE_QC_recovery %>% 
-  group_by(HCB) %>% 
-      ggplot(aes(factor(Batch_num), HCB, color=OCPPBDE_QC_recovery$Batch_number)) +
-      geom_point() +
-    labs(y="Recovery %", x = "Batch number")+
-    geom_hline(yintercept = 100, linetype="dashed", 
-                color = "blue")+
-    ggtitle("HCB concentration - Spiked QCs ") +
-    scale_y_continuous(trans='log10')+
-    theme(plot.title = element_text(hjust = 0.5))+
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-    theme(legend.position = "none")+
-    annotate("text",x=15, y=130, size=4, label = paste("n=",ocp_batches$`n (per analyte)`[1] ))
-ggplotly(ocp1)
-
-#b-HCH
-ocp2<-ggplot(OCPPBDE_QC_recovery, aes(factor(Batch_num), `b-HCH`, color=OCPPBDE_QC_recovery$Batch_number)) +
-    geom_point() +
-    labs(y= "Recovery %", x = "Batch Number")+
-    geom_hline(yintercept = 100, linetype="dashed", 
-                color = "blue")+
-    scale_y_continuous(trans='log10')+
-    ggtitle("b-HCH concentration - Spiked QCs ") + 
-    theme(plot.title = element_text(hjust = 0.5))+
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-    theme(legend.position = "none")+
-    annotate("text",x=15, y=130, size=4, label = paste("n=",ocp_batches$`n (per analyte)`[1] ))
-ggplotly(ocp2)
-
-#Oxychlordane
-ocp3<-ggplot(OCPPBDE_QC_recovery, aes(factor(Batch_num), `Oxychlordane`, color=OCPPBDE_QC_recovery$Batch_number)) +
-    geom_point() +
-    labs(y= "Recovery %", x = "Batch Number")+
-    scale_y_continuous(trans='log10')+
-    geom_hline(yintercept = 100, linetype="dashed", 
-                color = "blue")+
-    ggtitle("Oxychlordane concentration - Spiked QCs ") + 
-    theme(plot.title = element_text(hjust = 0.5))+
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-    theme(legend.position = "none")+
-    annotate("text",x=15, y=130, size=4, label = paste("n=",ocp_batches$`n (per analyte)`[1] ))
-ggplotly(ocp3)
-
-#trans-Nonachlor
-ocp4<-ggplot(OCPPBDE_QC_recovery, aes(factor(Batch_num), `trans-Nonachlor`, color=OCPPBDE_QC_recovery$Batch_number)) +
-    geom_point() +
-    labs(y= "Recovery %", x = "Batch Number")+
-    scale_y_continuous(trans='log10')+
-    geom_hline(yintercept = 100, linetype="dashed", 
-                color = "blue")+
-    ggtitle("Trans-Nonachlor concentration - Spiked QCs ") + 
-    theme(plot.title = element_text(hjust = 0.5))+
-    theme(plot.title = element_text(hjust = 0.5))+
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-    theme(legend.position = "none")+
-    annotate("text",x=15, y=130, size=4, label = paste("n=",ocp_batches$`n (per analyte)`[1] ))
-ggplotly(ocp4)
-
-#pp-DDE
-ocp5<-ggplot(OCPPBDE_QC_recovery, aes(factor(Batch_num), `pp-DDE`, color=OCPPBDE_QC_recovery$Batch_number)) +
-    geom_point() +
-    labs(y= "Recovery %", x = "Batch Number")+
-    scale_y_continuous(trans='log10')+
-    geom_hline(yintercept = 100, linetype="dashed", 
-                color = "blue")+
-    ggtitle("pp-DDE concentration - Spiked QCs ") + 
-    theme(plot.title = element_text(hjust = 0.5))+
-    theme(plot.title = element_text(hjust = 0.5))+
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-    theme(legend.position = "none")+
-    annotate("text",x=15, y=130, size=4, label = paste("n=",ocp_batches$`n (per analyte)`[1] ))
-
-ggplotly(ocp5)
-
-#pp-DDT
-ocp7<-ggplot(OCPPBDE_QC_recovery, aes(factor(Batch_num), `pp-DDT`, color=OCPPBDE_QC_recovery$Batch_number)) +
-    geom_point() +
-    labs(y= "Recovery %", x = "Batch Number")+
-    scale_y_continuous(trans='log10')+
-    geom_hline(yintercept = 100, linetype="dashed", 
-                color = "blue")+
-    ggtitle("pp-DDT concentration - Spiked QCs ") + 
-    theme(plot.title = element_text(hjust = 0.5))+
-    theme(plot.title = element_text(hjust = 0.5))+
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-    theme(legend.position = "none")+
-    annotate("text",x=15, y=130, size=4, label = paste("n=",ocp_batches$`n (per analyte)`[1] ))
-
-ggplotly(ocp7)
-
-
-
-```
-
-### PCB (Spiked): Recovery(%) by Analyte
-
-```{r PCB spiked batch cleanup, echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
-PCB_QC_recovery<-PCB_QC_recovery %>% 
-  mutate(Batch_num=str_sub(`Batch_number`,4,5))
-
-PCB_QC_recovery$Batch_num<-as.numeric(PCB_QC_recovery$Batch_num)
-
-PCB_QC_recovery<-PCB_QC_recovery %>%
-  arrange((Batch_num))
-
-PCB_QC_recovery_batch<-data.frame(PCB_QC_recovery$Batch_num)
-```
-
-
-```{r QC plot - PCB spiked, echo=FALSE,message=FALSE,warning=FALSE}
-pcb1<-ggplot(PCB_QC_recovery, aes(factor(Batch_num), `PCB-118 `, color=PCB_QC_recovery$Batch_number)) +
-    geom_point() +
-    labs(y= "Recovery % ", x = "Batch Number")+
-    geom_hline(yintercept = 100, linetype="dashed", 
-                color = "blue")+
-    ggtitle("PCB-118 concentration - Spiked QCs ") + 
-    theme(plot.title = element_text(hjust = 0.5))+
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-    theme(legend.position = "none")+
-    annotate("text",x=25, y=110, size=4, label = paste("n=",pcb_batches$`n (per analyte)`[1] ))
-
-
-pcb2<-ggplot(PCB_QC_recovery, aes(factor(Batch_num), `PCB-153`, color=PCB_QC_recovery$Batch_number)) +
-    geom_point() +
-    labs(y= "Recovery % ", x = "Batch Number")+
-    geom_hline(yintercept = 100, linetype="dashed", 
-                color = "blue")+
-    ggtitle("PCB-153 concentration - Spiked QCs ") + 
-    theme(plot.title = element_text(hjust = 0.5))+
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-    theme(legend.position = "none")+
-      annotate("text",x=25, y=110, size=4, label = paste("n=",pcb_batches$`n (per analyte)`[1] ))
-
-pcb3<-ggplot(PCB_QC_recovery, aes(factor(Batch_num), `PCB-138`, color=PCB_QC_recovery$Batch_number)) +
-    geom_point() +
-    labs(y= "Recovery % ", x = "Batch Number")+
-    geom_hline(yintercept = 100, linetype="dashed", 
-                color = "blue")+
-    ggtitle("PCB-138 concentration - Spiked QCs ") + 
-    theme(plot.title = element_text(hjust = 0.5))+
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-    theme(legend.position = "none")+
-      annotate("text",x=25, y=110, size=4, label = paste("n=",pcb_batches$`n (per analyte)`[1] ))
-
-
-pcb4<-ggplot(PCB_QC_recovery, aes(factor(Batch_num), `PCB-156`, color=PCB_QC_recovery$Batch_number)) +
-    geom_point() +
-    labs(y= "Recovery % ", x = "Batch Number")+
-    geom_hline(yintercept = 100, linetype="dashed", 
-                color = "blue")+
-    ggtitle("PCB-156 concentration - Spiked QCs ") + 
-    theme(plot.title = element_text(hjust = 0.5))+
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-    theme(legend.position = "none")+
-      annotate("text",x=25, y=110, size=4, label = paste("n=",pcb_batches$`n (per analyte)`[1] ))
-
-
-pcb5<-ggplot(PCB_QC_recovery, aes(factor(Batch_num), `PCB-157`, color=PCB_QC_recovery$Batch_number)) +
-    geom_point() +
-    labs(y= "Recovery % ", x = "Batch Number")+
-    geom_hline(yintercept = 100, linetype="dashed", 
-                color = "blue")+
-    ggtitle("PCB-157 concentration - Spiked QCs ") + 
-    theme(plot.title = element_text(hjust = 0.5))+
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-    theme(legend.position = "none")+
-      annotate("text",x=25, y=110, size=4, label = paste("n=",pcb_batches$`n (per analyte)`[1] ))
-
-
-pcb6<-ggplot(PCB_QC_recovery, aes(factor(Batch_num), `PCB-180`, color=PCB_QC_recovery$Batch_number)) +
-    geom_point() +
-    labs(y= "Recovery %", x = "Batch Number")+
-    geom_hline(yintercept = 100, linetype="dashed", 
-                color = "blue")+
-    ggtitle("PCB-180 concentration - Spiked QCs ") + 
-    theme(plot.title = element_text(hjust = 0.5))+
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-    theme(legend.position = "none")+
-      annotate("text",x=25, y=110, size=4, label = paste("n=",pcb_batches$`n (per analyte)`[1] ))
-
-
-pcb7<-ggplot(PCB_QC_recovery, aes(factor(Batch_num), `PCB-170`, color=PCB_QC_recovery$Batch_number)) +
-    geom_point() +
-    labs(y= "Recovery % ", x = "Batch Number")+
-    geom_hline(yintercept = 100, linetype="dashed", 
-                color = "blue")+
-    ggtitle("PCB-170 concentration - Spiked QCs ") + 
-    theme(plot.title = element_text(hjust = 0.5))+
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-    theme(legend.position = "none")+
-      annotate("text",x=25, y=110, size=4, label = paste("n=",pcb_batches$`n (per analyte)`[1] ))
-
-ggplotly(pcb1)
-ggplotly(pcb2)
-ggplotly(pcb3)
-ggplotly(pcb4)
-ggplotly(pcb5)
-ggplotly(pcb6)
-ggplotly(pcb7)
-
-
-```
 
 ### OCP (Spiked) : Scatterplot- all QCs
 
@@ -2089,6 +1879,255 @@ ocp_hline<-ocp_hline %>%
 
 ```
 
+
+```{r QC plot - OCP spiked, echo=FALSE,message=FALSE,warning=FALSE}
+legend_title <- "Batches"
+
+
+
+
+#HCB
+ocp1<-OCPPBDE_QC_recovery %>% 
+  group_by(HCB) %>% 
+      ggplot(aes(factor(Batch_num), HCB, color=OCPPBDE_QC_recovery$Batch_number)) +
+      geom_point() +
+    labs(y="Recovery %", x = "Batch number")+
+    geom_hline(yintercept = 100, linetype="dashed", 
+                color = "blue")+
+    ggtitle("HCB concentration - Spiked QCs ") +
+    scale_y_continuous(trans='log10')+
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")+
+    annotate("text",x=15, y=130, size=4, label = paste("n=",ocp_qc_batches$`n (per analyte)`[1] ))
+ggplotly(ocp1)
+
+#b-HCH
+ocp2<-ggplot(OCPPBDE_QC_recovery, aes(factor(Batch_num), `b-HCH`, color=OCPPBDE_QC_recovery$Batch_number)) +
+    geom_point() +
+    labs(y= "Recovery %", x = "Batch Number")+
+    geom_hline(yintercept = 100, linetype="dashed", 
+                color = "blue")+
+    scale_y_continuous(trans='log10')+
+    ggtitle("b-HCH concentration - Spiked QCs ") + 
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")+
+    annotate("text",x=15, y=130, size=4, label = paste("n=",ocp_qc_batches$`n (per analyte)`[1] ))
+ggplotly(ocp2)
+
+#Oxychlordane
+ocp3<-ggplot(OCPPBDE_QC_recovery, aes(factor(Batch_num), `Oxychlordane`, color=OCPPBDE_QC_recovery$Batch_number)) +
+    geom_point() +
+    labs(y= "Recovery %", x = "Batch Number")+
+    scale_y_continuous(trans='log10')+
+    geom_hline(yintercept = 100, linetype="dashed", 
+                color = "blue")+
+    ggtitle("Oxychlordane concentration - Spiked QCs ") + 
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")+
+    annotate("text",x=15, y=130, size=4, label = paste("n=",ocp_qc_batches$`n (per analyte)`[1] ))
+ggplotly(ocp3)
+
+#trans-Nonachlor
+ocp4<-ggplot(OCPPBDE_QC_recovery, aes(factor(Batch_num), `trans-Nonachlor`, color=OCPPBDE_QC_recovery$Batch_number)) +
+    geom_point() +
+    labs(y= "Recovery %", x = "Batch Number")+
+    scale_y_continuous(trans='log10')+
+    geom_hline(yintercept = 100, linetype="dashed", 
+                color = "blue")+
+    ggtitle("Trans-Nonachlor concentration - Spiked QCs ") + 
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")+
+    annotate("text",x=15, y=130, size=4, label = paste("n=",ocp_qc_batches$`n (per analyte)`[1] ))
+ggplotly(ocp4)
+
+#pp-DDE
+ocp5<-ggplot(OCPPBDE_QC_recovery, aes(factor(Batch_num), `pp-DDE`, color=OCPPBDE_QC_recovery$Batch_number)) +
+    geom_point() +
+    labs(y= "Recovery %", x = "Batch Number")+
+    scale_y_continuous(trans='log10')+
+    geom_hline(yintercept = 100, linetype="dashed", 
+                color = "blue")+
+    ggtitle("pp-DDE concentration - Spiked QCs ") + 
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")+
+    annotate("text",x=15, y=130, size=4, label = paste("n=",ocp_qc_batches$`n (per analyte)`[1] ))
+
+ggplotly(ocp5)
+
+#pp-DDT
+ocp7<-ggplot(OCPPBDE_QC_recovery, aes(factor(Batch_num), `pp-DDT`, color=OCPPBDE_QC_recovery$Batch_number)) +
+    geom_point() +
+    labs(y= "Recovery %", x = "Batch Number")+
+    scale_y_continuous(trans='log10')+
+    geom_hline(yintercept = 100, linetype="dashed", 
+                color = "blue")+
+    ggtitle("pp-DDT concentration - Spiked QCs ") + 
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")+
+    annotate("text",x=15, y=130, size=4, label = paste("n=",ocp_qc_batches$`n (per analyte)`[1] ))
+
+ggplotly(ocp7)
+
+
+
+```
+### PCB (Spiked): Recovery(%) by Analyte
+
+```{r PCB spiked batch cleanup, echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
+PCB_QC_recovery<-PCB_QC_recovery %>% 
+  mutate(Batch_num=str_sub(`Batch_number`,4,5))
+
+PCB_QC_recovery$Batch_num<-as.numeric(PCB_QC_recovery$Batch_num)
+
+PCB_QC_recovery<-PCB_QC_recovery %>%
+  arrange((Batch_num))
+
+PCB_QC_recovery_batch<-data.frame(PCB_QC_recovery$Batch_num)
+```
+
+### PCB (Spiked):Scatterplot - all QCs
+
+```{r PCB (Spiked) - all samples, echo=FALSE,message=FALSE,warning=FALSE,results='hide'}
+q<-PCB_QC_Spiked %>% 
+  select("Type",PCB_colnames, "Batch_num") %>% 
+  group_by("Batch_num") %>% 
+  gather(var, value,-Type) %>% 
+  filter(str_detect(var,"Results"))
+  
+q$value<-as.numeric(as.character(q$value))
+signif(q$value,digits = 8)
+
+s<-PCB_QC_Spiked %>% 
+  select("Type",PCB_colnames, "Batch_num") %>%
+  group_by("Batch_num") %>%
+  gather(var, value,-Batch_num) %>% 
+  filter(str_detect(var,"Results"))
+
+s$value<-as.numeric(as.character(s$value))
+signif(s$value,digits = 8)
+
+pcb_qc_batches<-cbind(q,s)
+pcb_qc_batches <- pcb_qc_batches[, !duplicated(colnames(pcb_qc_batches), fromLast = TRUE)] 
+pcb_qc_batches<-pcb_qc_batches %>% 
+  group_by(var) %>% 
+  mutate('n (per analyte)' = n()) %>% 
+  ungroup() %>% 
+  mutate(`Batch_num2` = `Batch_num`) %>% 
+rename( "analyte"= "var")
+pcb_qc_batches$Batch_num<-as.character(pcb_qc_batches$Batch_num)
+
+pcb_hline<-pcb_hline %>% 
+  rename("analyte"="variable")
+
+```
+
+
+
+```{r QC plot - PCB spiked, echo=FALSE,message=FALSE,warning=FALSE}
+pcb1<-ggplot(PCB_QC_recovery, aes(factor(Batch_num), `PCB-118 `, color=PCB_QC_recovery$Batch_number)) +
+    geom_point() +
+    labs(y= "Recovery % ", x = "Batch Number")+
+    geom_hline(yintercept = 100, linetype="dashed", 
+                color = "blue")+
+    ggtitle("PCB-118 concentration - Spiked QCs ") + 
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")+
+    annotate("text",x=25, y=110, size=4, label = paste("n=",pcb_qc_batches$`n (per analyte)`[1] ))
+
+
+pcb2<-ggplot(PCB_QC_recovery, aes(factor(Batch_num), `PCB-153`, color=PCB_QC_recovery$Batch_number)) +
+    geom_point() +
+    labs(y= "Recovery % ", x = "Batch Number")+
+    geom_hline(yintercept = 100, linetype="dashed", 
+                color = "blue")+
+    ggtitle("PCB-153 concentration - Spiked QCs ") + 
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")+
+      annotate("text",x=25, y=110, size=4, label = paste("n=",pcb_qc_batches$`n (per analyte)`[1] ))
+
+pcb3<-ggplot(PCB_QC_recovery, aes(factor(Batch_num), `PCB-138`, color=PCB_QC_recovery$Batch_number)) +
+    geom_point() +
+    labs(y= "Recovery % ", x = "Batch Number")+
+    geom_hline(yintercept = 100, linetype="dashed", 
+                color = "blue")+
+    ggtitle("PCB-138 concentration - Spiked QCs ") + 
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")+
+      annotate("text",x=25, y=110, size=4, label = paste("n=",pcb_qc_batches$`n (per analyte)`[1] ))
+
+
+pcb4<-ggplot(PCB_QC_recovery, aes(factor(Batch_num), `PCB-156`, color=PCB_QC_recovery$Batch_number)) +
+    geom_point() +
+    labs(y= "Recovery % ", x = "Batch Number")+
+    geom_hline(yintercept = 100, linetype="dashed", 
+                color = "blue")+
+    ggtitle("PCB-156 concentration - Spiked QCs ") + 
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")+
+      annotate("text",x=25, y=110, size=4, label = paste("n=",pcb_qc_batches$`n (per analyte)`[1] ))
+
+
+pcb5<-ggplot(PCB_QC_recovery, aes(factor(Batch_num), `PCB-157`, color=PCB_QC_recovery$Batch_number)) +
+    geom_point() +
+    labs(y= "Recovery % ", x = "Batch Number")+
+    geom_hline(yintercept = 100, linetype="dashed", 
+                color = "blue")+
+    ggtitle("PCB-157 concentration - Spiked QCs ") + 
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")+
+      annotate("text",x=25, y=110, size=4, label = paste("n=",pcb_qc_batches$`n (per analyte)`[1] ))
+
+
+pcb6<-ggplot(PCB_QC_recovery, aes(factor(Batch_num), `PCB-180`, color=PCB_QC_recovery$Batch_number)) +
+    geom_point() +
+    labs(y= "Recovery %", x = "Batch Number")+
+    geom_hline(yintercept = 100, linetype="dashed", 
+                color = "blue")+
+    ggtitle("PCB-180 concentration - Spiked QCs ") + 
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")+
+      annotate("text",x=25, y=110, size=4, label = paste("n=",pcb_qc_batches$`n (per analyte)`[1] ))
+
+
+pcb7<-ggplot(PCB_QC_recovery, aes(factor(Batch_num), `PCB-170`, color=PCB_QC_recovery$Batch_number)) +
+    geom_point() +
+    labs(y= "Recovery % ", x = "Batch Number")+
+    geom_hline(yintercept = 100, linetype="dashed", 
+                color = "blue")+
+    ggtitle("PCB-170 concentration - Spiked QCs ") + 
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")+
+      annotate("text",x=25, y=110, size=4, label = paste("n=",pcb_qc_batches$`n (per analyte)`[1] ))
+
+ggplotly(pcb1)
+ggplotly(pcb2)
+ggplotly(pcb3)
+ggplotly(pcb4)
+ggplotly(pcb5)
+ggplotly(pcb6)
+ggplotly(pcb7)
+
+
+```
+
+
+
 ```{r OCP QC SCatterplot - display plot, all samples, echo=FALSE,message=FALSE,warning=FALSE, fig.height = 40, fig.width =10 }
 
 ocp_qc_batches%>% 
@@ -2125,47 +2164,11 @@ ocp_qc_batches%>%
         plot.subtitle = element_text(size = rel(1), lineheight = 1,
                                      margin = margin(0, 0, 1, 0, "lines")),
         strip.text = element_text(family = "Enriqueta",
-                                  colour = vit_c_palette["light_text"], face = "bold"))
-  
+                                  colour = vit_c_palette["light_text"], face = "bold"),
+        panel.margin.x = unit(1,"lines"), panel.margin.y = unit(0,"lines")
+  )
 
 
-
-      
-```
-
-### PCB (Spiked):Scatterplot - all QCs
-
-```{r PCB (Spiked) - all samples, echo=FALSE,message=FALSE,warning=FALSE,results='hide'}
-q<-PCB_QC_Spiked %>% 
-  select("Type",PCB_colnames, "Batch_num") %>% 
-  group_by("Batch_num") %>% 
-  gather(var, value,-Type) %>% 
-  filter(str_detect(var,"Results"))
-  
-q$value<-as.numeric(as.character(q$value))
-signif(q$value,digits = 8)
-
-s<-PCB_QC_Spiked %>% 
-  select("Type",PCB_colnames, "Batch_num") %>%
-  group_by("Batch_num") %>%
-  gather(var, value,-Batch_num) %>% 
-  filter(str_detect(var,"Results"))
-
-s$value<-as.numeric(as.character(s$value))
-signif(s$value,digits = 8)
-
-pcb_qc_batches<-cbind(q,s)
-pcb_qc_batches <- pcb_qc_batches[, !duplicated(colnames(pcb_qc_batches), fromLast = TRUE)] 
-pcb_qc_batches<-pcb_qc_batches %>% 
-  group_by(var) %>% 
-  mutate('n (per analyte)' = n()) %>% 
-  ungroup() %>% 
-  mutate(`Batch_num2` = `Batch_num`) %>% 
-rename( "analyte"= "var")
-pcb_qc_batches$Batch_num<-as.character(pcb_qc_batches$Batch_num)
-
-pcb_hline<-pcb_hline %>% 
-  rename("analyte"="variable")
 
 ```
 
@@ -2220,7 +2223,7 @@ pcb_qc_batches%>%
 
 OCP/PBDE
 
-```{r ALL unspiked QC OCP plots, echo=FALSE,message=FALSE,warning=FALSE }
+```{r ALL unspiked QC OCP plots, echo=FALSE,message=FALSE,warning=FALSE}
 
 OCPPBDE_QC_unspike_mean %>%
     pivot_longer(-Batch_number) %>%
@@ -2228,7 +2231,7 @@ OCPPBDE_QC_unspike_mean %>%
     count(Batch_number, name, wt = value) %>%
     ggplot(aes(n, name)) +
     geom_col() +
-    facet_wrap(~Batch_number,scales = "free")+
+    facet_wrap(~Batch_number)+
     labs(y= "Analytes", x = "Concentration")+
     ggtitle("Untargetted Pool average concentration - OCP/PBDE") + 
     theme(plot.title = element_text(hjust = 0.5))
@@ -2355,7 +2358,7 @@ shewhart_ocp_unspike
 
 ### PCB (Unspiked): Concentration across batches
 
-```{r QC plot - unspiked PCB, echo=FALSE,message=FALSE,warning=FALSE }
+```{r QC plot - unspiked PCB, echo=FALSE,message=FALSE,warning=FALSE, fig.height = 20, fig.width =10 }
 
 PCB_QC_unspike_mean %>%
     pivot_longer(-Batch_number) %>%
@@ -2363,7 +2366,7 @@ PCB_QC_unspike_mean %>%
     count(Batch_number, name, wt = value) %>%
     ggplot(aes(n, name)) +
     geom_col() +
-    facet_wrap(~Batch_number, scales = "free", ncol=4)+
+    facet_wrap(~Batch_number, ncol=3)+
     labs(y= "Analytes", x = "Concentration")+
     ggtitle("Untargetted Pool average concentration - PCB") + 
     theme(plot.title = element_text(hjust = 0.5))
@@ -2446,9 +2449,9 @@ shewhart_pcb_unspike<-max_min_unspike_pcb %>%
   geom_point(aes(color=`Batch_num`)) + 
   geom_label_repel(data = pcb_unspike_hline, 
                   aes(x = 4.5, y = pcb_unspike_hline$mean+0.0001, label = paste0(average_symbol, "=", sprintf("%.3f",pcb_unspike_hline$mean))),#sig figs
-                  size=3,point.size = NA, #Do not repel labels from data points
+                  size=3, #Do not repel labels from data points
                   min.segment.length = unit(0, 'lines'),
-                      arrow = arrow(length = unit(0.02, "npc")),box.padding = 1,
+                      arrow = arrow(length = unit(0.01, "npc")),box.padding = 2,
                   nudge_x = -0.001
     )+ 
     geom_hline(data = pcb_unspike_hline, aes(yintercept = `mean`, linetype= `linetype_mean`), color = "blue", size=0.5)+
@@ -2484,7 +2487,7 @@ shewhart_pcb_unspike
 
 # Quality Control (Blanks)
 
-###OCP (Blanks): Shewhart Plot
+### OCP (Blanks): Shewhart Plot
 
 ```{r QC cleanup Data BLANKS, echo=FALSE,message=FALSE,warning=FALSE, results='hide'}
 
@@ -2608,8 +2611,9 @@ avg_plot1<- max_min_blanks_ocp %>%
   geom_hline(data = ocp_blanks_hline, aes(yintercept = ocp_blanks_hline$mean,linetype = factor(ocp_blanks_hline$linetype_mean), show_guide = TRUE),
             color = "blue", size=0.6)+
   geom_label_repel(data = ocp_blanks_hline, 
-                  aes(x = 4, y = ocp_blanks_hline$mean + 0.01, label = paste0(average_symbol, "=", sprintf("%.3f",ocp_blanks_hline$mean))),#sig figs
-                  size=3,point.size = NA, #Do not repel labels from data points
+                  aes(x = 4, y = ocp_blanks_hline$mean, label = paste0(average_symbol, "=", sprintf("%.3f",ocp_blanks_hline$mean))),#sig figs
+                  size=3, #Do not repel labels from data points
+                   arrow = arrow(length = unit(0.01, "npc")),box.padding = 1
     )+ 
   geom_hline(data = ocp_blanks_hline, aes(yintercept = ocp_blanks_hline$sd1, linetype = factor(ocp_blanks_hline$linetype_sd1), show_guide=TRUE),
              color = "black", size=0.5)+
@@ -2730,6 +2734,7 @@ avg_plot2<- max_min_blanks_PCB %>%
   
 avg_plot2  
 ```
+
 
 
 # Descriptive Statistics
@@ -2952,7 +2957,7 @@ IQR_PCB<-signif(IQR_PCB,2)
 
 stats_OCP %>%
     kbl(
-    caption = "<center><span style='font-size:30px'>OCP: Unspiked QCs - Descriptive Statistics </span></center>") %>% 
+    caption = "<center><span style='font-size:30px'>OCP: Samples - Descriptive Statistics </span></center>") %>% 
     add_header_above(c(" " = 1, "2T" = 3, "3T" =3, "Post" = 3)) %>% 
   kable_styling( stripe_color = "gray!6",
     bootstrap_options = c("striped", "hover")) %>% 
@@ -2964,7 +2969,7 @@ stats_OCP %>%
 ```{r Display IQR - OCP, echo=FALSE,message=FALSE,warning=FALSE, digits = 3}
 IQR_OCPPBDE %>% 
   kbl(
-    caption = "<center><span style='font-size:30px'>OCP: Unspiked QCs - IQR </span></center>") %>%
+    caption = "<center><span style='font-size:30px'>OCP Samples - IQR </span></center>") %>%
     add_header_above(c("2T" = 6, "3T" =5, "Post" = 5)) %>% 
   kable_styling( stripe_color = "gray!6",
     bootstrap_options = c("striped", "hover")) %>% 
@@ -2979,7 +2984,7 @@ IQR_OCPPBDE %>%
 
 stats_PCB %>%
     kbl(
-    caption = "<center><span style='font-size:30px'>PCB: Unspiked QCs - Descriptive Statistics </span></center>") %>% 
+    caption = "<center><span style='font-size:30px'>PCB Samples - Descriptive Statistics </span></center>") %>% 
     add_header_above(c(" " = 1, "2T" = 3, "3T" =3, "Post" = 3)) %>% 
   kable_styling( stripe_color = "gray!6",
     bootstrap_options = c("striped", "hover")) %>% 
@@ -2991,7 +2996,7 @@ stats_PCB %>%
 ```{r Display IQR Table - PCB, echo=FALSE,message=FALSE,warning=FALSE}
 IQR_PCB %>% 
   kbl(
-    caption = "<center><span style='font-size:30px'>PCB: Unspiked QCs - IQR </span></center>") %>%
+    caption = "<center><span style='font-size:30px'>PCB Samples - IQR </span></center>") %>%
     add_header_above(c("2T" = 8, "3T" =7, "Post" = 7)) %>% 
   kable_styling( stripe_color = "gray!6",
     bootstrap_options = c("striped", "hover")) %>% 
